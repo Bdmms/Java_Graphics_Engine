@@ -12,6 +12,7 @@ public class Face extends Renderable
 	
 	private BodyGroup root;						// The body group this face is part of
 	private Vertex[] vertices = new Vertex[3];	// The three vertices that make up the face
+	private float[] normal;						// The normal of the face
 	private int[] face;							// The parameters of the face
 	private int id;								// The face's id
 	private byte numVertex = 0;					// The number of vertices added to the face
@@ -62,10 +63,13 @@ public class Face extends Renderable
 	{
 		if(numVertex < 3)
 			Application.throwError("FATAL ERROR - NOT ENOUGH VERTICES", this);
+		else
+			normal = Plane.getNormal(vertices[0].vertex, vertices[1].vertex, vertices[2].vertex);
 	}
 	
 	public Vertex[] getVertecies() {return vertices;}
 	public Vertex getVertex(int i) {return vertices[i];}
+	public float[] getNormal() {return normal;}
 	public int[] getObjFace() {return face;}
 	public int getID() {return id;}
 	public Material getMaterial() {return root.material;}

@@ -10,14 +10,11 @@ import java.util.LinkedList;
 
 public class Vertex
 {
-	public enum Wrapper {None, Wrap, InvWrap}; // Defines different texture wrapping methods
-	
 	public static final float UNDEFINED = Float.POSITIVE_INFINITY;
 	public static final float[] ORIGIN = new float[3];
 	public static final Vertex ZERO = new Vertex(ORIGIN);
 	
 	private static int numVertex = 0;			//Total number of vertices created
-	private static Wrapper wrap = Wrapper.None; //TEMP: static texture wrapper
 	
 	private LinkedList<Face> faces = new LinkedList<Face>();// List of faces the vertex forms
 	private Line projection = new Line(ORIGIN, ORIGIN);		// Calculated rendered projection (do not set)
@@ -80,36 +77,10 @@ public class Vertex
 		projected = true;
 	}
 	
-	// Adds texture coordinates to vector (TODO: adjusted based on wrapping)
+	// Adds texture coordinates to vector
 	public void setTexture(float[] text)
 	{
-		for(byte a = 0; a < 2; a++)
-		{
-			switch(wrap)
-			{
-			case None: 
-				texture[a] = text[a];
-				break;
-				
-			case Wrap:
-				if(text[a] < 0)
-					texture[a] = 1 + (text[a] % 1);
-				else if(text[a] > 1)
-					texture[a] = text[a] % 1;
-				else
-					texture[a] = text[a];
-				break;
-				
-			case InvWrap:
-				if(text[a] < 0)
-					texture[a] = 1 - (-text[a] % 1);
-				else if(text[a] > 1)
-					texture[a] = text[a];
-				else
-					texture[a] = (1 - (text[a] % 1));
-				break;
-			}
-		}
+		texture = text;
 	}
 	
 	// Sets the normal vector
@@ -127,8 +98,8 @@ public class Vertex
 	// Returns base face of vertex
 	public Face getFirstFace() {return faces.getFirst();}
 	
-	// Returns projection and resets the projected flag (TODO: use once per rendered frame)
-	public Line getProjection() 
+	// Returns projection and resets the projected flag
+	public Line pullProjection() 
 	{
 		projected = false;
 		return projection;

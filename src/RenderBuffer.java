@@ -51,42 +51,49 @@ public class RenderBuffer
 			return;
 		
 		int[] texture = mat.getTexture();
-		int textureWidth = mat.getWidth();
+		int textureWidth = mat.width;
+		int textureHeight = mat.height;
 		
+		boolean start_drawing = false;
 		float[] ref = tri.getReferencePoint();
 		float[] svect = tri.getSVector();
 		float[] tvect = tri.getTVector();
-		float dep, iX, iY, iDep, iTx, iTy;
-		int i, tx, ty, color;
+		float dep, i_x, i_y, i_depth, i_texture_x, i_texture_y, t_max;
+		int x, i, tx, ty, color;
 		
-		int w = mat.width - 1;
-		int h = mat.height - 1;
-		
-		for(float s = tri.getMinS(); s < tri.getMaxS(); s += tri.sInc)
+		for(float s = 0; s < 1; s += tri.sInc)
 		{
-			iX = ref[0] + svect[0]*s;
-			iY = ref[1] + svect[1]*s;
-			iDep = ref[2] + svect[2]*s;
-			iTx = tri.getTextureStartX() + svect[3]*s;
-			iTy = tri.getTextureStartY() + svect[4]*s;
+			i_x = ref[0] + svect[0]*s;
+			i_y = ref[1] + svect[1]*s;
+			i_depth = ref[2] + svect[2]*s;
+			i_texture_x = tri.getTextureStartX() + svect[3]*s;
+			i_texture_y = tri.getTextureStartY() + svect[4]*s;
 			
-			for(float t = tri.getMinT(s); t < tri.getMaxT(s); t += tri.tInc)
+			t_max = 1 - s;
+			//t_max = (width - i_x) / tvect[1];
+			//if(t_max > 1- s)
+			//	t_max = 1 - s;
+			
+			start_drawing = false;
+			for(float t = 0; t < t_max; t += tri.sInc)
 			{
-				i = (int)(iX + tvect[0]*t) + (int)(iY + tvect[1]*t) * width;
+				x = (int)(i_x + tvect[0]*t);
+				i = x + (int)(i_y + tvect[1]*t) * width;
 				
 				// If screen pixel reference is not within bounds
-				if(i >= 0 && i < size)
+				if(i >= 0 && i < size && x > 0 && x < width)
 				{
-					dep = iDep + tvect[2]*t;
+					start_drawing = true;
+					dep = i_depth + tvect[2]*t;
 					
 					// If depth of face is behind something
 					if(depth[i] > dep)
 					{
-						tx = (int)((iTx + tvect[3]*t) * w) % mat.width;
-						ty = (int)((iTy + tvect[4]*t) * h) % mat.height;
+						tx = (int)(((i_texture_x + tvect[3]*t) % 1) * textureWidth);
+						ty = (int)(((i_texture_y + tvect[4]*t) % 1) * textureHeight);
 		
-						if(tx < 0) tx = (mat.width + tx);
-						if(ty < 0) ty = (mat.height + ty);
+						if(tx < 0) tx = textureWidth + tx;
+						if(ty < 0) ty = textureHeight + ty;
 						
 						color = texture[tx + ty * textureWidth];
 						
@@ -97,6 +104,11 @@ public class RenderBuffer
 							depth[i] = dep;
 						}
 					}
+				}
+				else
+				{
+					if(start_drawing)
+						break;
 				}
 			}
 		}
@@ -142,4 +154,79 @@ public class RenderBuffer
 	
 	public int getWidth() {return width;}
 	public int getHeight() {return height;}
+	
+	
+	public void UnitTest1()
+	{
+		System.out.println("--- Unit Test 1 ---");
+		
+		RenderTriangle test = new RenderTriangle(this);
+		float[] p1 = {width * 0.25f, -height / 3,0};
+		float[] p2 = {width * 0.25f, height * 4 / 3,0};
+		float[] p3 = {width * 1.25f, height / 2,0};
+		Face f = new Face(null);
+		f.addVertex(new Vertex(p1), new Vertex(p2), new Vertex(p3));
+		test.reset(p1, p2, p3, f);
+		test.print();
+		
+		if(test.remove == true)
+			System.out.println("WARNING - Unit Test Rejected");
+		
+		System.out.println("Recommendation = " + test.getMinT(0.0f));
+		System.out.println("Recommendation = " + test.getMaxT(0.0f));
+		System.out.println("Recommendation = " + test.getMinT(0.5f));
+		System.out.println("Recommendation = " + test.getMaxT(0.5f));
+		System.out.println("Recommendation = " + test.getMinT(1.0f));
+		System.out.println("Recommendation = " + test.getMaxT(1.0f));
+	}
+	
+	public void UnitTest2()
+	{
+		System.out.println(" ");
+		System.out.println("--- Unit Test 2 ---");
+		
+		RenderTriangle test = new RenderTriangle(this);
+		float[] p1 = {width * 0.25f, height * 0.25f, 0};
+		float[] p2 = {width * 0.25f, height * 0.75f, 0};
+		float[] p3 = {width * 0.75f, height * 0.50f, 0};
+		Face f = new Face(null);
+		f.addVertex(new Vertex(p1), new Vertex(p2), new Vertex(p3));
+		test.reset(p1, p2, p3, f);
+		test.print();
+		
+		if(test.remove == true)
+			System.out.println("WARNING - Unit Test Rejected");
+		
+		System.out.println("Recommendation = " + test.getMinT(0.0f));
+		System.out.println("Recommendation = " + test.getMaxT(0.0f));
+		System.out.println("Recommendation = " + test.getMinT(0.5f));
+		System.out.println("Recommendation = " + test.getMaxT(0.5f));
+		System.out.println("Recommendation = " + test.getMinT(1.0f));
+		System.out.println("Recommendation = " + test.getMaxT(1.0f));
+	}
+	
+	public void UnitTest3()
+	{
+		System.out.println(" ");
+		System.out.println("--- Unit Test 3 ---");
+		
+		RenderTriangle test = new RenderTriangle(this);
+		float[] p1 = {width * 0.25f, height * 1.25f, 0};
+		float[] p2 = {width * 0.25f, height * 0.25f, 0};
+		float[] p3 = {width * 0.75f, height * 0.50f, 0};
+		Face f = new Face(null);
+		f.addVertex(new Vertex(p1), new Vertex(p2), new Vertex(p3));
+		test.reset(p1, p2, p3, f);
+		test.print();
+		
+		if(test.remove == true)
+			System.out.println("WARNING - Unit Test Rejected");
+		
+		System.out.println("Recommendation = " + test.getMinT(0.0f));
+		System.out.println("Recommendation = " + test.getMaxT(0.0f));
+		System.out.println("Recommendation = " + test.getMinT(0.5f));
+		System.out.println("Recommendation = " + test.getMaxT(0.5f));
+		System.out.println("Recommendation = " + test.getMinT(1.0f));
+		System.out.println("Recommendation = " + test.getMaxT(1.0f));
+	}
 }

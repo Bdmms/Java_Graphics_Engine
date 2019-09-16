@@ -65,12 +65,12 @@ public class Application
 		strategy = w.getBufferStrategy();
 		
 		// Engine Configuration
-		env = new Environment();
+		env = new Environment(this);
 		
 		// Manually adding model and camera
-		camera = new Camera(1.5f, 1.0f, 500.0f, internalWidth, internalHeight);
+		camera = new Camera(1.5f, 1.0f, 100.0f, internalWidth, internalHeight);
 		//model = new Model("models\\HyruleCastle\\", "hyrule_castle.obj");
-		//model = new Model("models\\The Legend of Zelda - Twilight Princess\\Spinner\\", "spinner.obj");
+		model = new Model("models\\The Legend of Zelda - Twilight Princess\\Spinner\\", "spinner.obj");
 		//model = new Model("models\\The Legend of Zelda - Twilight Princess\\King Bulblin Test Area\\", "king bulblin test area.obj");
 
 		env.addStructure(model);
@@ -187,6 +187,9 @@ public class Application
         	}
 	    } 
 	}
+	
+	public int getInternalWidth() {return internalWidth;}
+	public int getInternalHeight() {return internalHeight;}
 	
 	// Custom error handler, use to display object's and their parameters
 	public static void throwError(String message, Object o)

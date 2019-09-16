@@ -53,7 +53,10 @@ public class BodyGroup extends Structure
 		Iterator<Face> iterator = faces.iterator();
 		
 		for(int i = 0; i < finalizedList.length; i++)
+		{
 			finalizedList[i] = iterator.next();
+			finalizedList[i].finalize();
+		}
 	}
 	
 	public int size() {return faces.size();}

@@ -67,10 +67,7 @@ public class Plane
 			return true;
 		}
 		else
-		{
-			p2D[2] = Float.POSITIVE_INFINITY;
 			return false;
-		}
 	}
 	
 	// Solve for s and t from intersection point
@@ -125,7 +122,7 @@ public class Plane
 		for(byte a = 0; a < 3; a++)
 		{
 			v1[a] = p2[a] - p1[a];
-			v2[a] = p3[a] - p1[a];
+			v2[a] = p3[a] - p2[a];
 		}
 		
 		normal[0] = v1[1]*v2[2] - v1[2]*v2[1];

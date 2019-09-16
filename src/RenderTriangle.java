@@ -8,16 +8,18 @@
 
 public class RenderTriangle 
 {
-	public enum Orientation {TOP_L, TOP_R, BOT_L, BOT_R}	// TODO: Orientation of clipping
-	
-	public static final float[] HORIZONTAL = {1, 0};	// Horizontal 2D unit vector
-	public static final float[] VERTICAL = {0, 1};		// Vertical 2D unit vector
+	private static float[] HOR_VECTOR = {1,0};
+	private static float[] VER_VECTOR = {0,1};
+	private static float[] ORIGIN = {0,0};
+	private static float[] W_ORIGIN = new float[2];
+	private static float[] H_ORIGIN = new float[2];
 	
 	private RenderBuffer root;	// Reference to buffer
 	private Face ref;			// Reference to face being rendered
-	private Orientation orientation; // Clipping Orientation
 	
-	private float[][] boundVector = new float[4][4]; // TODO: Boundary clipping vector
+	private float[][] clipEq = new float[4][4]; // |s0|t0|s|t|
+	private int numClips = 0;
+	
 	private float[] refPoint;				// Anchor point of rendering
 	private float[] sVector = new float[5]; // S-component vector: |x|y|depth|tx|ty|
 	private float[] tVector = new float[5]; // T-component vector: |x|y|depth|tx|ty|
@@ -31,6 +33,10 @@ public class RenderTriangle
 	private float ymax;		// Max bounds of y
 	private float smin;		// Min bounds of s
 	private float smax;		// Max bounds of s
+	private float s_width;	// Width of s vector
+	private float s_height;	// Height of s vector
+	private float t_width;  // Width of t vector
+	private float t_height;	// Height of t vector
 	private float width;	// Boundary width of triangle
 	private float height;	// Boundary height of triangle
 	boolean remove;			// Flag used to destroy this object
@@ -61,26 +67,16 @@ public class RenderTriangle
 		refPoint = p1;
 		textureX = ref.getVertex(0).texture[0];
 		textureY = ref.getVertex(0).texture[1];
+		
 		sVector[3] = ref.getVertex(1).texture[0] - textureX;
 		sVector[4] = ref.getVertex(1).texture[1] - textureY;
 		tVector[3] = ref.getVertex(2).texture[0] - textureX;
 		tVector[4] = ref.getVertex(2).texture[1] - textureY;
 		
-		smin = 0;
-		smax = 1;
+		//smin = 0;
+		//smax = 1;
 		xmin = xmax = refPoint[0];
 		ymin = ymax = refPoint[1];
-		
-		if(refPoint[0] < root.getWidth()/2)
-			if(refPoint[1] < root.getHeight()/2)
-				orientation = Orientation.BOT_L;
-			else
-				orientation = Orientation.BOT_R;
-		else
-			if(refPoint[1] < root.getHeight()/2)
-				orientation = Orientation.TOP_L;
-			else
-				orientation = Orientation.TOP_R;
 		
 		if(p2[0] < xmin)
 			xmin = p2[0];
@@ -104,68 +100,164 @@ public class RenderTriangle
 		
 		width = xmax - xmin;
 		height = ymax - ymin;
-		sInc = tInc = width > height ? tInc = 1/width : 1/height;
 		
-		clipBounds(0, 0, HORIZONTAL, 0);
-		clipBounds(0, 0, VERTICAL, 1);
-		clipBounds(0, root.getHeight(), HORIZONTAL, 2);
-		clipBounds(root.getWidth(), 0, VERTICAL, 3);
+		// Safe Increment value
+		sInc = width > height ? 1/(width) : 1/(height);
 		
-		if(height > 400) remove = true;
+		/*
+		s_width = Math.abs(sVector[0]) + 1;
+		s_height = Math.abs(sVector[1]) + 1;
+		t_width = Math.abs(tVector[0]) + 1;
+		t_height = Math.abs(tVector[1]) + 1;
+		sInc = s_width > s_height ? 1 / s_width : 1 / s_height;
+		tInc = t_width > t_height ? 1 / t_width : 1 / t_height;
+		if(sInc < tInc) tInc = sInc;
+		else sInc = tInc;
+		*/
+
+		//TEMP UNTIL CLIPPING WORKS
+		if(height > root.getHeight() / 2) remove = true;
+		else if(width > root.getWidth() / 2) remove = true;
 		else if(xmax < 0) remove = true;
 		else if(xmin > root.getWidth()) remove = true;
 		else if(ymax < 0) remove = true;
 		else if(ymin > root.getHeight()) remove = true;
 		else remove = false;
+		
+		/*
+		W_ORIGIN[0] = root.getWidth();
+		W_ORIGIN[1] = 0;
+		H_ORIGIN[0] = 0;
+		H_ORIGIN[1] = root.getHeight();
+		numClips = 0;
+		
+		clipBounds(ORIGIN, HOR_VECTOR);
+		clipBounds(ORIGIN, VER_VECTOR);
+		clipBounds(H_ORIGIN, HOR_VECTOR);
+		clipBounds(W_ORIGIN, VER_VECTOR);
+		*/
 	}
 	
 	// Clips the triangle based on the boundaries of the screen
-	public void clipBounds(int x, int y, float[] vect, int bound)
+	public void clipBounds(float[] boundSrc, float[] boundVect)
 	{
-		float s, t;
-		int target = 0;
-
-		//Order: TOP, LEFT, BOTTOM, RIGHT
-		switch(orientation)
+		float[] itr_s = new float[4]; // |x|y|s|t|
+		float[] itr_t = new float[4]; // |x|y|s|t|
+		
+		//System.out.println("-----");
+		//System.out.print("Clip " + (numClips + 1));
+		
+		if(lineIntersection(refPoint, sVector, boundSrc, boundVect, itr_s))
 		{
-		case TOP_L: target = bound; break;
-		case TOP_R: target = (bound + 1) % 4; break;
-		case BOT_R: target = (bound + 2) % 4; break;
-		case BOT_L: target = (bound + 3) % 4; break;
-		default: Application.throwError("ERROR - UNKNOWN TRIANGLE ORIENTATION", this);
+			if(lineIntersection(refPoint, tVector, boundSrc, boundVect, itr_t))
+			{
+				/*
+				System.out.println(": S-T BOUNDARY");
+				System.out.println("Format: |x|y|s|t|");
+				System.out.print("S: ");
+				Application.printFloatArr(itr_s);
+				System.out.print("T: ");
+				Application.printFloatArr(itr_t);
+				System.out.print("U: ");
+				Application.printFloatArr(itr_u);
+				 */
+				
+				clipEq[numClips][0] = itr_s[2];
+				clipEq[numClips][1] = 0;
+				clipEq[numClips][2] = 0;
+				clipEq[numClips][3] = itr_t[2];
+				numClips++;
+				return;
+			}
+			else
+			{
+				/*
+				System.out.println(": S BOUNDARY");
+				System.out.println("Format: |x|y|s|t|");
+				System.out.print("S: ");
+				Application.printFloatArr(itr_s);
+				System.out.print("T: ");
+				Application.printFloatArr(itr_t);
+				System.out.print("U: ");
+				Application.printFloatArr(itr_u);
+				*/
+				
+				clipEq[numClips][0] = itr_s[2];	// S = s
+				clipEq[numClips][1] = 0;		// T = 0
+				clipEq[numClips][2] = 0;
+				clipEq[numClips][3] = 0;
+				numClips++;
+				return;
+			}
+		}
+		else if(lineIntersection(refPoint, tVector, boundSrc, boundVect, itr_t))
+		{
+			/*
+			System.out.println(": T BOUNDARY");
+			System.out.println("Format: |x|y|s|t|");
+			System.out.print("S: ");
+			Application.printFloatArr(itr_s);
+			System.out.print("T: ");
+			Application.printFloatArr(itr_t);
+			System.out.print("U: ");
+			Application.printFloatArr(itr_u);
+			*/
+			
+			clipEq[numClips][0] = 0;		// S = 0
+			clipEq[numClips][1] = itr_t[2]; // T = t
+			clipEq[numClips][2] = 0;
+			clipEq[numClips][3] = 0;
+			numClips++;
+			return;
 		}
 		
-		//(s, 0)
-		if(sVector[1] == 0)
+		remove = true;
+		
+		// Unit Test
+		float[] src0 = {0, 0};
+		float[] src1 = {0, 0};
+		float[] test0 = {1, 0};
+		float[] test1 = {0, 1};
+		lineIntersection(src0, test0, src1, test1, itr_s);
+		Application.printFloatArr(itr_s);
+		System.exit(1);
+	}
+	
+	public boolean lineIntersection(float[] src0, float[] vect0, float[] src1, float[] vect1, float[] intersection)
+	{
+		if(vect0[0] / vect0[1] == vect1[0] / vect1[1])
+			return false;
+		
+		if(vect1[1] == 0)
 		{
-			s = (x + vect[0] - refPoint[0])/sVector[0]; //(s, ?)
-			boundVector[target][0] = s;
+			intersection[3] = (src0[0] - src1[0] + vect0[0] / vect0[1] * (src1[1] - src0[0])) / (vect1[0] - vect0[0] * vect1[1] / vect0[1]);
+			intersection[2] = (src1[1] + vect1[1]*intersection[3] - src0[1]) / vect0[1];
 		}
 		else
 		{
-			s = (y + vect[1] - refPoint[1])/sVector[1]; //(?, s)
-			boundVector[target][1] = s;
+			// --- Math ---
+			//a = x constant
+			//b = y constant
+			
+			//a0 + x0*s = a1 + x1*t
+			//b0 + y0*s = b1 + y1*t
+			
+			//s = (a1 + x1*t - a0) / x0
+			//t = (a0 + x0*s - a1) / x1
+			//t = (b0 + y0*s - b1) / y1
+			
+			//s = (a1 + x1/y1*(b0 + y0*s - b1) - a0) / x0
+			//s - x1/x0*y0/y1*s = (a1 + x1/y1*(b0 - b1) - a0) / x0
+			//s = (a1 - a0 + x1/y1*(b0 - b1)) / (x0 - x1*y0/y1)
+			
+			intersection[2] = (src1[0] - src0[0] + vect1[0] / vect1[1] * (src0[1] - src1[0])) / (vect0[0] - vect1[0] * vect0[1] / vect1[1]);
+			intersection[3] = (src0[1] + vect0[1]*intersection[2] - src1[1]) / vect1[1];
 		}
 		
-		//(0, t)
-		if(tVector[1] != 0)
-		{
-			t = (x + vect[0] - refPoint[0])/tVector[0]; //(t, ?)
-			boundVector[target][0] = t;
-		}
-		else
-		{
-			t = (y + vect[1] - refPoint[1])/tVector[1]; //(?, t)
-			boundVector[target][1] = t;
-		}
+		intersection[0] = src0[0] + vect0[0]*intersection[2];
+		intersection[1] = src0[1] + vect0[1]*intersection[2];
 		
-		if(s < 0) s = 0;
-		if(s > 1) s = 1;
-		if(s < smin) smin = s;
-		if(s > smax) smax = s;
-		
-		boundVector[target][2] = -s;
-		boundVector[target][3] = t;
+		return true;
 	}
 	
 	// Solves for s and t based on (x, y) position
@@ -215,17 +307,89 @@ public class RenderTriangle
 	// Returns minimum t
 	public float getMaxT(float s)
 	{
-		//float a = boundVector[2][1] + boundVector[2][3]*s;
-		//float b = boundVector[3][1] + boundVector[3][3]*s;
-		return 1 - s;
+		float lowestT1 = 1 - s;
+		float lowestT2 = lowestT1;
+		float lowestT3 = lowestT1;
+		float tAtS = 0;
+		
+		System.out.println("---- Maximum T Value ----");
+		System.out.println("Checking s = " + s);
+		System.out.println("Possible Values:");
+		System.out.println("Default: " + lowestT1);
+		
+		for(int i = 0; i < numClips; i++)
+		{
+			if(clipEq[i][0] > 0)
+				tAtS = clipEq[i][3] - (clipEq[i][3] / clipEq[i][0] * s);
+			else
+				tAtS = clipEq[i][1];
+			
+			System.out.println("Clip " + i + ":" + tAtS);
+			
+			if(tAtS < lowestT1)
+			{
+				lowestT3 = lowestT2;
+				lowestT2 = lowestT1;
+				lowestT1 = tAtS;
+			}
+			else if(tAtS < lowestT2)
+			{
+				lowestT3 = lowestT2;
+				lowestT2 = tAtS;
+			}
+			else if(tAtS < lowestT3)
+				lowestT3 = tAtS;
+		}
+		
+		if(lowestT3 < 0)
+			return 1 - s;
+		else
+			return lowestT3;
 	}
 	
 	// Returns maximum t
 	public float getMinT(float s)
 	{
-		//float a = boundVector[0][1] + boundVector[0][3]*s;
-		//float b = boundVector[1][1] + boundVector[1][3]*s;
-		return 0;
+		
+		
+		float highestT1 = 0;
+		float highestT2 = 0;
+		float highestT3 = 0;
+		float tAtS = 0;
+		
+		System.out.println("---- Minimum T Value ----");
+		System.out.println("Checking s = " + s);
+		System.out.println("Possible Values:");
+		System.out.println("Default: " + highestT1);
+		
+		for(int i = 0; i < numClips; i++)
+		{
+			if(clipEq[i][0] > 0)
+				tAtS = clipEq[i][3] - (clipEq[i][3] / clipEq[i][0] * s);
+			else
+				tAtS = clipEq[i][1];
+			
+			System.out.println("Clip " + i + ": " + tAtS);
+			
+			if(tAtS > highestT1)
+			{
+				highestT3 = highestT2;
+				highestT2 = highestT1;
+				highestT1 = tAtS;
+			}
+			else if(tAtS > highestT2)
+			{
+				highestT3 = highestT2;
+				highestT2 = tAtS;
+			}
+			else if(tAtS > highestT3)
+				highestT3 = tAtS;
+		}
+		
+		if(highestT3 > 1)
+			return 0;
+		else
+			return highestT3;
 	}
 	
 	public float[] getReferencePoint() {return refPoint;}
@@ -233,4 +397,14 @@ public class RenderTriangle
 	public float[] getTVector() {return tVector;}
 	public float getTextureStartX() {return textureX;}
 	public float getTextureStartY() {return textureY;}
+	
+	public void print()
+	{
+		System.out.println("RenderTriangle: N/A");
+		for(int i = 0; i < numClips; i++)
+		{
+			System.out.print("Clip Eq. " + i + ": ");
+			Application.printFloatArr(clipEq[i]);
+		}
+	}
 }

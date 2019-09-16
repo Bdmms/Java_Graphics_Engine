@@ -47,9 +47,14 @@ public class Camera extends Structure
 	public void renderFace(Face f)
 	{
 		//Find where each projection vector intersects view plane
-		if(!viewPlane.intersectionAlongPlane(f.getVertex(0).getProjection(), pixelData[0], width, height)) return;
-		if(!viewPlane.intersectionAlongPlane(f.getVertex(1).getProjection(), pixelData[1], width, height)) return;
-		if(!viewPlane.intersectionAlongPlane(f.getVertex(2).getProjection(), pixelData[2], width, height)) return;
+		Line v1 = f.getVertex(0).pullProjection();
+		if(!viewPlane.intersectionAlongPlane(v1, pixelData[0], width, height)) return;
+		
+		Line v2 = f.getVertex(1).pullProjection();
+		if(!viewPlane.intersectionAlongPlane(v2, pixelData[1], width, height)) return;
+		
+		Line v3 = f.getVertex(2).pullProjection();
+		if(!viewPlane.intersectionAlongPlane(v3, pixelData[2], width, height)) return;
 		
 		//Reset the renderable triangle to the intersecting points
 		triangle.reset(pixelData[0], pixelData[1], pixelData[2], f);
