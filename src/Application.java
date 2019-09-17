@@ -46,8 +46,8 @@ public class Application
 		bounds = gc.getBounds();
 		externalWidth = gc.getBounds().width;
 		externalHeight = gc.getBounds().height;
-		internalWidth = (int)(gc.getBounds().width * scale);
-		internalHeight = (int)(gc.getBounds().height * scale);
+		internalWidth = (int)(gc.getBounds().width * Math.sqrt(scale));
+		internalHeight = (int)(gc.getBounds().height * Math.sqrt(scale));
 		
 		// Frame Configuration
 		frame = new Frame(gc);
@@ -68,9 +68,9 @@ public class Application
 		env = new Environment(this);
 		
 		// Manually adding model and camera
-		camera = new Camera(1.5f, 1.0f, 100.0f, internalWidth, internalHeight);
-		//model = new Model("models\\HyruleCastle\\", "hyrule_castle.obj");
-		model = new Model("models\\The Legend of Zelda - Twilight Princess\\Spinner\\", "spinner.obj");
+		camera = new Camera(1.5f, 1.0f, 10.0f, internalWidth, internalHeight);
+		model = new Model("models\\HyruleCastle\\", "hyrule_castle.obj");
+		//model = new Model("models\\The Legend of Zelda - Twilight Princess\\Spinner\\", "spinner.obj");
 		//model = new Model("models\\The Legend of Zelda - Twilight Princess\\King Bulblin Test Area\\", "king bulblin test area.obj");
 
 		env.addStructure(model);
@@ -107,9 +107,10 @@ public class Application
 		{
 			// Create Graphic Context
         	graphics = strategy.getDrawGraphics();
-
+        	
         	// Graphic Rendering
         	graphics.drawImage(buffer, 0, 0, externalWidth, externalHeight, w);
+        	
         	graphics.setColor(Color.WHITE);
         	graphics.drawString("FPS: " + Time.frameRate, 5, 20);
 

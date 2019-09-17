@@ -60,7 +60,7 @@ public class Camera extends Structure
 		triangle.reset(pixelData[0], pixelData[1], pixelData[2], f);
 		
 		//Draw renderable triangle in the buffer
-		buffer.drawTriangle(triangle, f.getMaterial());
+		buffer.fillTriangleXOR(triangle, f.getMaterial());
 	}
 	
 	// Returns intersection point of a line to the camera's view plane

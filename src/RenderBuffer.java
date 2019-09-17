@@ -27,6 +27,12 @@ public class RenderBuffer
 	private int height;				// Height of frame in pixels
 	private int size;				// Total size of frame
 	
+	private float[] origin = new float[5];
+	private float[] x_corner = new float[5];
+	private float[] y_corner = new float[5];
+	private float[] x_vector = new float[5]; 
+	private float[] y_vector = new float[5]; 
+	
 	public RenderBuffer(int w, int h)
 	{
 		width = w;
@@ -43,9 +49,104 @@ public class RenderBuffer
 		
 		refresh();
 	}
+	
+	// Renders a triangle in the buffer
+	public void fillTriangleXOR(RenderTriangle tri, Material mat)
+	{
+		if(tri.remove)
+			return;
+		
+		int[] texture = mat.getTexture();
+		boolean drawing;
+		
+		float dep, s, t, int_dep, int_s, int_t, int_tx, int_ty;
+		float xmin = tri.getMinX();
+		float xmax = tri.getMaxX();
+		float ymin = tri.getMinY();
+		float ymax = tri.getMaxY();
+		float tri_width = (xmax - xmin);
+		float tri_height = (ymax - ymin);
+		
+		int index, color, tx, ty, x, y, int_index;
+		int start = (int)xmin + (int)ymin * width;
+		int ystart = ymin >= 0 ? 0 : (int)-ymin;
+		int xstart = xmin >= 0 ? 0 : (int)-xmin;
+		float xend = xmax >= width ? tri_width - xmax + width - 1: tri_width;
+		float yend = ymax >= height ? tri_height - ymax + height - 1: tri_height;
+		
+		tri.solveForST(xmin, ymin, origin);
+		tri.solveForST(xmax, ymin, x_corner);
+		tri.solveForST(xmin, ymax, y_corner);
+		
+		x_vector[0] = (x_corner[0] - origin[0]) / tri_width;
+		x_vector[1] = (x_corner[1] - origin[1]) / tri_width;
+		x_vector[2] = (x_corner[2] - origin[2]) / tri_width;
+		x_vector[3] = (x_corner[3] - origin[3]) / tri_width;
+		x_vector[4] = (x_corner[4] - origin[4]) / tri_width;
+		y_vector[0] = (y_corner[0] - origin[0]) / tri_height;
+		y_vector[1] = (y_corner[1] - origin[1]) / tri_height;
+		y_vector[2] = (y_corner[2] - origin[2]) / tri_height;
+		y_vector[3] = (y_corner[3] - origin[3]) / tri_height;
+		y_vector[4] = (y_corner[4] - origin[4]) / tri_height;
+		
+		for(y = ystart; y < yend; y++)
+		{
+			int_s = origin[0] + y_vector[0]*y;
+			int_t = origin[1] + y_vector[1]*y;
+			int_dep = origin[2] + y_vector[2]*y;
+			int_tx = origin[3] + y_vector[3]*y;
+			int_ty = origin[4] + y_vector[4]*y;
+			int_index = start + y*width;
+			drawing = false;
+			
+			for(x = xstart; x < xend; x++)
+			{
+				index = int_index + x;
+				
+				if(index > size)
+				{
+					//TEMP
+					System.out.println(x + (int)xmin);
+					System.out.println(y + (int)ymin);
+					System.out.println(x);
+					System.out.println(y);
+					System.out.println(index);
+					break;
+				}
+				
+				s = (int_s + x_vector[0]*x);
+				t = (int_t + x_vector[1]*x);
+				
+				if(s >= 0.00f && t >= 0.00f && s + t <= 1.00f)
+				{
+					drawing = true;
+					dep = int_dep + x_vector[2]*x;
+					
+					if(depth[index] > dep)
+					{
+						tx = (int)(((int_tx + x_vector[3]*x) % 1) * mat.width);
+						ty = (int)(((int_ty + x_vector[4]*x) % 1) * mat.height);
+						
+						if(tx < 0) tx = mat.width + tx;
+						if(ty < 0) ty = mat.height + ty;
+						
+						color = texture[tx + ty * mat.width];
+						
+						if((color & 0xFF000000) < 0)
+						{
+							frame[index] = color;
+							depth[index] = dep;
+						}
+					}
+				}
+				else if(drawing)
+					break;
+			}
+		}
+	}
 
 	// Renders a triangle in the buffer
-	public void drawTriangle(RenderTriangle tri, Material mat)
+	public void fillTriangleSTV(RenderTriangle tri, Material mat)
 	{
 		if(tri.remove)
 			return;
@@ -154,79 +255,4 @@ public class RenderBuffer
 	
 	public int getWidth() {return width;}
 	public int getHeight() {return height;}
-	
-	
-	public void UnitTest1()
-	{
-		System.out.println("--- Unit Test 1 ---");
-		
-		RenderTriangle test = new RenderTriangle(this);
-		float[] p1 = {width * 0.25f, -height / 3,0};
-		float[] p2 = {width * 0.25f, height * 4 / 3,0};
-		float[] p3 = {width * 1.25f, height / 2,0};
-		Face f = new Face(null);
-		f.addVertex(new Vertex(p1), new Vertex(p2), new Vertex(p3));
-		test.reset(p1, p2, p3, f);
-		test.print();
-		
-		if(test.remove == true)
-			System.out.println("WARNING - Unit Test Rejected");
-		
-		System.out.println("Recommendation = " + test.getMinT(0.0f));
-		System.out.println("Recommendation = " + test.getMaxT(0.0f));
-		System.out.println("Recommendation = " + test.getMinT(0.5f));
-		System.out.println("Recommendation = " + test.getMaxT(0.5f));
-		System.out.println("Recommendation = " + test.getMinT(1.0f));
-		System.out.println("Recommendation = " + test.getMaxT(1.0f));
-	}
-	
-	public void UnitTest2()
-	{
-		System.out.println(" ");
-		System.out.println("--- Unit Test 2 ---");
-		
-		RenderTriangle test = new RenderTriangle(this);
-		float[] p1 = {width * 0.25f, height * 0.25f, 0};
-		float[] p2 = {width * 0.25f, height * 0.75f, 0};
-		float[] p3 = {width * 0.75f, height * 0.50f, 0};
-		Face f = new Face(null);
-		f.addVertex(new Vertex(p1), new Vertex(p2), new Vertex(p3));
-		test.reset(p1, p2, p3, f);
-		test.print();
-		
-		if(test.remove == true)
-			System.out.println("WARNING - Unit Test Rejected");
-		
-		System.out.println("Recommendation = " + test.getMinT(0.0f));
-		System.out.println("Recommendation = " + test.getMaxT(0.0f));
-		System.out.println("Recommendation = " + test.getMinT(0.5f));
-		System.out.println("Recommendation = " + test.getMaxT(0.5f));
-		System.out.println("Recommendation = " + test.getMinT(1.0f));
-		System.out.println("Recommendation = " + test.getMaxT(1.0f));
-	}
-	
-	public void UnitTest3()
-	{
-		System.out.println(" ");
-		System.out.println("--- Unit Test 3 ---");
-		
-		RenderTriangle test = new RenderTriangle(this);
-		float[] p1 = {width * 0.25f, height * 1.25f, 0};
-		float[] p2 = {width * 0.25f, height * 0.25f, 0};
-		float[] p3 = {width * 0.75f, height * 0.50f, 0};
-		Face f = new Face(null);
-		f.addVertex(new Vertex(p1), new Vertex(p2), new Vertex(p3));
-		test.reset(p1, p2, p3, f);
-		test.print();
-		
-		if(test.remove == true)
-			System.out.println("WARNING - Unit Test Rejected");
-		
-		System.out.println("Recommendation = " + test.getMinT(0.0f));
-		System.out.println("Recommendation = " + test.getMaxT(0.0f));
-		System.out.println("Recommendation = " + test.getMinT(0.5f));
-		System.out.println("Recommendation = " + test.getMaxT(0.5f));
-		System.out.println("Recommendation = " + test.getMinT(1.0f));
-		System.out.println("Recommendation = " + test.getMaxT(1.0f));
-	}
 }
