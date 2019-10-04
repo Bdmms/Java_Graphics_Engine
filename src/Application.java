@@ -23,7 +23,7 @@ public class Application
 	private KeyBinder keys;				//Control binder
 	
 	private float rate = 6.0f;			//Rate of rotation
-	private float scale = 1.00f;			//Scale of external to internal
+	private float scale = 1.00f;		//Scale of external to internal
 	private int internalWidth;			//Internal Resolution
 	private int internalHeight;
 	private int externalWidth;			//Display Resolution
@@ -65,13 +65,14 @@ public class Application
 		strategy = w.getBufferStrategy();
 		
 		// Engine Configuration
-		env = new Environment(this);
+		env = new Environment();
 		
 		// Manually adding model and camera
-		camera = new Camera(1.5f, 1.0f, 10.0f, internalWidth, internalHeight);
-		model = new Model("models\\HyruleCastle\\", "hyrule_castle.obj");
-		//model = new Model("models\\The Legend of Zelda - Twilight Princess\\Spinner\\", "spinner.obj");
+		camera = new OrthographicCamera(1.5f, 1.0f, 10.0f, internalWidth, internalHeight);
+		//model = new Model("models\\HyruleCastle\\", "hyrule_castle.obj");
+		model = new Model("models\\The Legend of Zelda - Twilight Princess\\Spinner\\", "spinner.obj");
 		//model = new Model("models\\The Legend of Zelda - Twilight Princess\\King Bulblin Test Area\\", "king bulblin test area.obj");
+		//model = new Model("models\\Lethe T-Posed\\", "Lethe T-Posed.obj");
 
 		env.addStructure(model);
 		env.addCamera(camera);

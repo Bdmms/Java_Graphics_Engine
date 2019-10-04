@@ -2,3 +2,5 @@ models
 images
 bin
 .settings
+.classpath
+.project

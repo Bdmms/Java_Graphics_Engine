@@ -23,6 +23,9 @@ public class RenderBuffer
 	private SampleModel sm;			// Sample model of data buffer
 	private int[] frame;			// Data array of the frame
 	private float[] depth;			// Depth buffer of the frame
+	//private float[] tri_id;			
+	//private float[] tri_s;			
+	//private float[] tri_t;			
 	private int width;				// Width of frame in pixels
 	private int height;				// Height of frame in pixels
 	private int size;				// Total size of frame
@@ -64,13 +67,12 @@ public class RenderBuffer
 		float xmax = tri.getMaxX();
 		float ymin = tri.getMinY();
 		float ymax = tri.getMaxY();
-		float tri_width = (xmax - xmin);
-		float tri_height = (ymax - ymin);
+		float tri_width = tri.getWidth();
+		float tri_height = tri.getHeight();
 		
-		int index, color, tx, ty, x, y, int_index;
-		int start = (int)xmin + (int)ymin * width;
-		int ystart = ymin >= 0 ? 0 : (int)-ymin;
-		int xstart = xmin >= 0 ? 0 : (int)-xmin;
+		int index, color, tx, ty;
+		float ystart = ymin >= 0 ? 0 : -ymin;
+		float xstart = xmin >= 0 ? 0 : -xmin;
 		float xend = xmax >= width ? tri_width - xmax + width - 1: tri_width;
 		float yend = ymax >= height ? tri_height - ymax + height - 1: tri_height;
 		
@@ -89,25 +91,25 @@ public class RenderBuffer
 		y_vector[3] = (y_corner[3] - origin[3]) / tri_height;
 		y_vector[4] = (y_corner[4] - origin[4]) / tri_height;
 		
-		for(y = ystart; y < yend; y++)
+		for(float y = ystart; y < yend; y++)
 		{
 			int_s = origin[0] + y_vector[0]*y;
 			int_t = origin[1] + y_vector[1]*y;
 			int_dep = origin[2] + y_vector[2]*y;
 			int_tx = origin[3] + y_vector[3]*y;
 			int_ty = origin[4] + y_vector[4]*y;
-			int_index = start + y*width;
 			drawing = false;
 			
-			for(x = xstart; x < xend; x++)
+			for(float x = xstart; x < xend; x++)
 			{
-				index = int_index + x;
+				//index = (int)(xmin + x + (ymin + y) * width);
+				index = (int)(xmin + x) + (int)(ymin + y) * width;
 				
 				if(index > size)
 				{
 					//TEMP
-					System.out.println(x + (int)xmin);
-					System.out.println(y + (int)ymin);
+					System.out.println(x + xmin);
+					System.out.println(y + ymin);
 					System.out.println(x);
 					System.out.println(y);
 					System.out.println(index);
@@ -120,7 +122,7 @@ public class RenderBuffer
 				if(s >= 0.00f && t >= 0.00f && s + t <= 1.00f)
 				{
 					drawing = true;
-					dep = int_dep + x_vector[2]*x;
+					dep = int_dep + (x_vector[2]*x);
 					
 					if(depth[index] > dep)
 					{
@@ -229,28 +231,6 @@ public class RenderBuffer
 			frame[i] = 0x000000;
 			depth[i] = Float.POSITIVE_INFINITY;
 		}
-	}
-
-	// Modifies x value to be in bounds
-	public int convertXPosition(float x)
-	{
-		if(x < 0)
-			return 0;
-		else if(x >= width)
-			return width - 1;
-		else
-			return (int) x;
-	}
-	
-	// Modifies y value to be in bounds
-	public int convertYPosition(float y)
-	{
-		if(y < 0)
-			return 0;
-		else if(y >= height)
-			return height - 1;
-		else
-			return (int) y;
 	}
 	
 	public int getWidth() {return width;}

@@ -6,7 +6,7 @@
  * Abstract class used by all objects rendered in environment
  */
 
-public abstract class Renderable 
+public abstract class Renderable
 {
 	protected boolean visible = true; // sets if object will show during rendering
 	

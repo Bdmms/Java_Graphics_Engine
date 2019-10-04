@@ -15,12 +15,19 @@ public class Plane
 	float[] vectorS = new float[3];				// S-comp vector
 	float[] vectorT = new float[3];				// T-comp vector
 	float constant = 0;							// Plane constant
+	int virtualWidth;
+	int virtualHeight;
+	
+	float int_vector_t;
+	float int_vector_numerator;
 	
 	//Other
 	float intersectionNumerator;	// Intermediate calculation
 	
-	public Plane(Vertex p1, Vertex p2, Vertex p3)
+	public Plane(Vertex p1, Vertex p2, Vertex p3, int width, int height)
 	{
+		virtualWidth = width;
+		virtualHeight = height;
 		vertices[0] = p1;
 		vertices[1] = p2;
 		vertices[2] = p3;
@@ -31,6 +38,8 @@ public class Plane
 	{
 		vertices = f.getVertecies();
 		anchor = vertices[0].vertex;
+		virtualWidth = 1;
+		virtualHeight = 1;
 	}
 	
 	// Updates plane data based on camera position
@@ -46,10 +55,12 @@ public class Plane
 			vectorT[a] = vertices[2].vertex[a] - vertices[0].vertex[a];
 		}
 		
+		int_vector_t = vectorT[1] / vectorT[2];
+		int_vector_numerator = vectorS[1] - vectorT[1]/vectorT[2]*vectorS[2];
 	}
 	
 	// Calculates intersection of line to plane
-	public boolean intersectionAlongPlane(Line line, float[] p2D, int w, int h)
+	public boolean intersectionAlongPlane(Line line, float[] p2D)
 	{
 		//Parameters for the t value
 		float parallel = line.dot(normal);
@@ -62,8 +73,11 @@ public class Plane
 			intersectionPoint[1] = line.point[1] + line.vector[1] * tValue; //Y
 			intersectionPoint[2] = line.point[2] + line.vector[2] * tValue; //Z
 			
-			solveForST(intersectionPoint, p2D, w, h);
+			p2D[0] = (intersectionPoint[1] - anchor[1] - int_vector_t * (intersectionPoint[2] - anchor[2])) / int_vector_numerator;
+			p2D[1] = ((intersectionPoint[2] - anchor[2] - vectorS[2] * p2D[0]) / vectorT[2]) * virtualHeight;
+			p2D[0] *= virtualWidth;
 			p2D[2] = line.mag();
+			
 			return true;
 		}
 		else
@@ -83,7 +97,7 @@ public class Plane
 		
 		//s = ((y - y0 + v2y/v2z*(z - z0) )/v1y) / (1 - v2y/v2z*v1z/v1y)
 		
-		p2D[0] = ((intersect[1] - anchor[1] - vectorT[1] / vectorT[2] * (intersect[2] - anchor[2])) / vectorS[1])/(1 - vectorT[1]/vectorT[2]*vectorS[2]/vectorS[1]);
+		p2D[0] = (intersect[1] - anchor[1] - int_vector_t * (intersect[2] - anchor[2])) / int_vector_numerator;
 		p2D[1] = ((intersect[2] - anchor[2] - vectorS[2] * p2D[0]) / vectorT[2]) * h;
 		p2D[0] *= w;
 		
