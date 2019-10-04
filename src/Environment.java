@@ -12,7 +12,6 @@ import java.util.LinkedList;
 
 public class Environment
 {
-	private Application root;
 	private LinkedList<Structure> structures = new LinkedList<Structure>();	// List of all structures in environment
 	private LinkedList<Camera> cameras = new LinkedList<Camera>();			// List of available cameras
 	private Renderable[] finalizedList;				// Finalized list of renderable objects
@@ -22,11 +21,6 @@ public class Environment
 	private float[] anchorPosition = new float[3];	// The anchor position of the environment
 	private float[] anchorRotation = new float[3];	// The anchor rotation of the environment
 	private float[] anchorScale = {1,1,1};			// The anchor scale of the environment
-	
-	public Environment(Application r)
-	{
-		root = r;
-	}
 	
 	// Adds a structure to the environment
 	public void addStructure(Structure m) {structures.add(m);}

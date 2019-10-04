@@ -8,7 +8,7 @@
 
 public class RenderTriangle 
 {
-	private RenderBuffer root;	// Reference to buffer
+	//private RenderBuffer root;	// Reference to buffer
 
 	private float[][] clipEq = new float[4][4]; // |s0|t0|s|t|
 	private int numClips = 0;
@@ -26,11 +26,14 @@ public class RenderTriangle
 	private float ymax;		// Max bounds of y
 	private float width;	// Boundary width of triangle
 	private float height;	// Boundary height of triangle
-	boolean remove;			// Flag used to destroy this object
+	boolean remove = false;	// Flag used to destroy this object
 	
-	public RenderTriangle(RenderBuffer r)
+	float int_vector_t;
+	float int_vector_numerator;
+	
+	public RenderTriangle()
 	{
-		root = r;
+		//root = r;
 	}
 	
 	//Used to reset parameters without reinitializing the object
@@ -44,13 +47,6 @@ public class RenderTriangle
 		tVector[1] = p3[1] - p1[1];
 		tVector[2] = p3[2] - p1[2];
 		
-		if((sVector[0] == 0 && sVector[1] == 0) || (tVector[0] == 0 && tVector[1] == 0))
-		{
-			remove = true;
-			return;
-		}
-		
-		//ref = r;
 		refPoint = p1;
 		textureX = face.getVertex(0).texture[0];
 		textureY = face.getVertex(0).texture[1];
@@ -88,6 +84,9 @@ public class RenderTriangle
 		// Safe Increment value
 		sInc = width > height ? 1/(width) : 1/(height);
 		
+		int_vector_t = tVector[0] / tVector[1];
+		int_vector_numerator = sVector[0] - tVector[0]/tVector[1]*sVector[1];
+		
 		/*
 		float s_width = Math.abs(sVector[0]) + 1;
 		float s_height = Math.abs(sVector[1]) + 1;
@@ -98,13 +97,6 @@ public class RenderTriangle
 		if(sInc < tInc) tInc = sInc;
 		else sInc = tInc;
 		*/
-
-		//TEMP UNTIL CLIPPING WORKS
-		if(xmax < 0) remove = true;
-		else if(xmin > root.getWidth()) remove = true;
-		else if(ymax < 0) remove = true;
-		else if(ymin > root.getHeight()) remove = true;
-		else remove = false;
 	}
 	
 	public boolean lineIntersection(float[] src0, float[] vect0, float[] src1, float[] vect1, float[] intersection)
@@ -148,8 +140,7 @@ public class RenderTriangle
 	{
 		if(tVector[1] != 0)
 		{
-			float bound = (sVector[0] - tVector[0]/tVector[1]*sVector[1]);
-			float s = (x - refPoint[0] - tVector[0] / tVector[1] * (y - refPoint[1])) / bound;
+			float s = (x - refPoint[0] - int_vector_t * (y - refPoint[1])) / int_vector_numerator;
 			float t = (y - refPoint[1] - sVector[1] * s) / tVector[1];
 
 			return (s > 0 && t > 0 && s + t < 1);
@@ -179,6 +170,8 @@ public class RenderTriangle
 		ST[4] = textureY + ST[0]*sVector[4] + ST[1]*tVector[4];
 	}
 	
+	public float getWidth() {return width;}
+	public float getHeight() {return height;}
 	public float getMinX() {return xmin;}
 	public float getMaxX() {return xmax;}
 	public float getMinY() {return ymin;}
