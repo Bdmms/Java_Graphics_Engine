@@ -11,11 +11,11 @@ public abstract class Renderable
 	protected boolean visible = true; // sets if object will show during rendering
 	
 	// Processes object when rendering process begins
-	public abstract void finalize();
+	public abstract void finalizeRender();
 	
-	// Rendering transformation, which are updated per frame
-	public abstract void updateTransformation(final float[] ref, final float[] rot, final float[] scale);
+	// Updates transformation and renders object to camera
+	public abstract void render(final float[] refTransform, Camera camera);
 	
-	// Renders object to camera
-	public abstract void render(Camera camera);
+	// Toggles visibility of structure
+	public void toggleVisibility() { visible = !visible;}
 }

@@ -9,7 +9,8 @@
 public class RenderTriangle 
 {
 	//private RenderBuffer root;	// Reference to buffer
-
+	Face ref;
+	
 	private float[][] clipEq = new float[4][4]; // |s0|t0|s|t|
 	private int numClips = 0;
 	
@@ -31,13 +32,24 @@ public class RenderTriangle
 	float int_vector_t;
 	float int_vector_numerator;
 	
-	public RenderTriangle()
+	public RenderTriangle(Face face)
 	{
-		//root = r;
+		ref = face;
 	}
 	
-	//Used to reset parameters without reinitializing the object
-	public void reset(float[] p1, float[] p2, float[] p3, Face face)
+	// Used to update fixed parameters within the object
+	public void update()
+	{
+		textureX = ref.getVertex(0).texture[0];
+		textureY = ref.getVertex(0).texture[1];
+		sVector[3] = ref.getVertex(1).texture[0] - textureX;
+		sVector[4] = ref.getVertex(1).texture[1] - textureY;
+		tVector[3] = ref.getVertex(2).texture[0] - textureX;
+		tVector[4] = ref.getVertex(2).texture[1] - textureY;
+	}
+	
+	// Used to reset parameters without reinitializing the object
+	public void reset(float[] p1, float[] p2, float[] p3)
 	{
 		//Parameters for vector rasterization
 		sVector[0] = p2[0] - p1[0];
@@ -48,12 +60,6 @@ public class RenderTriangle
 		tVector[2] = p3[2] - p1[2];
 		
 		refPoint = p1;
-		textureX = face.getVertex(0).texture[0];
-		textureY = face.getVertex(0).texture[1];
-		sVector[3] = face.getVertex(1).texture[0] - textureX;
-		sVector[4] = face.getVertex(1).texture[1] - textureY;
-		tVector[3] = face.getVertex(2).texture[0] - textureX;
-		tVector[4] = face.getVertex(2).texture[1] - textureY;
 		
 		xmin = xmax = refPoint[0];
 		ymin = ymax = refPoint[1];

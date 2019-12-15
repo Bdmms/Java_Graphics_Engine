@@ -21,6 +21,7 @@ public abstract class Camera extends Structure
 	{
 		super("Camera " + numCameras);
 		setResolution(w, h);
+		visible = false;
 		numCameras++;
 	}
 	
@@ -32,6 +33,12 @@ public abstract class Camera extends Structure
 	{
 		this.width = width;
 		this.height = height;
+	}
+	
+	// Nullifies rendering process
+	public void render(final float[] refTransform, final Camera camera) 
+	{
+		
 	}
 	
 	// Renders the camera (does nothing)

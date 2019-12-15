@@ -22,7 +22,6 @@ public class Model extends Structure
 	String folder;				// Directory the model object is located in
 	String materialFile;		// Material file (MTL) associated with model
 	private int numFaces = 0;	// Total number of faces in model
-	private LinkedList<BodyGroup> bodygroups = new LinkedList<BodyGroup>();	// List of body groups in model
 	private LinkedList<Material> materials = new LinkedList<Material>();	// List of materials in model
 	private boolean hasTextures;	// Whether the model is using a texture (in obj)
 	private boolean hasNormals;		// Whether the model is using normals (in obj)
@@ -36,43 +35,6 @@ public class Model extends Structure
 		hasNormals = false;
 		
 		readObjFile(name);
-	}
-	
-	// Adds a body group to model
-	public void addBodyGroup(BodyGroup g){bodygroups.add(g);}
-	
-	// Returns a specified body group from list
-	public BodyGroup getBodyGroup(int i){return bodygroups.get(i);}
-	
-	// @Overload, updates transformations before rendering
-	public void updateTransformation(final float[] ref, final float[] rot, final float[] scale)
-	{
-		calculatePosition(ref, rot, scale);
-		
-		if(visible)
-			for(int i = 0; i < finalizedList.length; i++)
-				finalizedList[i].updateTransformation(finalPosition, finalRotation, finalScale);
-	}
-	
-	// Renders model to camera
-	public void render(Camera camera)
-	{
-		if(visible)
-			for(int i = 0; i < finalizedList.length; i++)
-				finalizedList[i].render(camera);
-	}
-	
-	// Finalizes the object and its components before rendering
-	public void finalize()
-	{
-		Iterator<BodyGroup> iterator = bodygroups.iterator();
-		finalizedList = new Renderable[bodygroups.size()];
-		
-		for(int i = 0; i < finalizedList.length; i++)
-		{
-			finalizedList[i] = iterator.next();
-			finalizedList[i].finalize();
-		}
 	}
 	
 	// Loads an .obj model file
@@ -124,7 +86,7 @@ public class Model extends Structure
 						if(group != null)
 						{
 							numFaces += group.size();
-							bodygroups.add(group);
+							children.add(group);
 						}
 						
 						group = new BodyGroup(line);
@@ -142,7 +104,7 @@ public class Model extends Structure
 							if(hasNormals) f.getVertex(v).setNormal(normals.get(face[i++] - 1));
 						}
 						
-						group.addFace(f);
+						group.addChild(f);
 						break;
 						
 					case MTLLIB: 
@@ -159,7 +121,7 @@ public class Model extends Structure
 						{
 							if(group.material != Material.DEFAULT_MAT)
 							{
-								bodygroups.add(group);
+								children.add(group);
 								group = new BodyGroup(mat.name);
 							}
 						}
@@ -184,7 +146,7 @@ public class Model extends Structure
 			if(group != null)
 			{
 				numFaces += group.size();
-				bodygroups.add(group);
+				children.add(group);
 			}
 			
 			reader.close();
@@ -193,7 +155,7 @@ public class Model extends Structure
 			System.out.println(textures.size() + " textures");
 			System.out.println(normals.size() + " normals");
 			System.out.println(numFaces + " faces");
-			System.out.println(bodygroups.size() + " bodygroups");
+			System.out.println(children.size() + " bodygroups");
 			System.out.println(materials.size() + " materials");
 		} 
 		catch (FileNotFoundException e) {System.out.println("ERROR - FAILED TO LOAD OBJ FILE: " + filein);} 

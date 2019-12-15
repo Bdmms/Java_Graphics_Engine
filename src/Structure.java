@@ -1,3 +1,6 @@
+import java.util.Iterator;
+import java.util.LinkedList;
+
 /*
  * File: Structure.java
  * Author: Sean Rannie
@@ -10,66 +13,98 @@ public abstract class Structure extends Renderable
 {
 	private static int numStructures = 0;	// Number of total structures created
 	
-	String name;						// Name of structure
-	float[] position = new float[3];	// Position vector
-	float[] rotation = new float[3];	// Rotation vector
-	float[] scale = {1,1,1};			// Scale vector
+	public final static byte POS_X = 0;
+	public final static byte POS_Y = 1;
+	public final static byte POS_Z = 2;
+	public final static byte ROT_X = 3;
+	public final static byte ROT_Y = 4;
+	public final static byte ROT_Z = 5;
+	public final static byte SCA_X = 6;
+	public final static byte SCA_Y = 7;
+	public final static byte SCA_Z = 8;
 	
+	public String name;						// Name of structure
+	public float[] transform = {0,0,0,0,0,0,1,1,1}; //Transformation matrix
+	private float[] finalTransform = {0,0,0,0,0,0,1,1,1};	// Calculated rendering transformation matrix
+	
+	protected LinkedList<Renderable> children;	// The dynamic list of children stored within the structure
 	protected Renderable[] finalizedList;		// Finalized list used to automate rendering process
-	protected float[] finalPosition = {0,0,0};	// Calculated rendering position
-	protected float[] finalRotation = {0,0,0};	// Calculated rendering rotation
-	protected float[] finalScale = {1,1,1};		// Calculated rendering scale
-	
-	private float[] rotationalPosition = new float[3]; 	// Intermediate rendering position
 	
 	public Structure(String name)
 	{
+		children = new LinkedList<Renderable>();
 		this.name = name;
 		numStructures++;
 	}
 	
-	// Calculates position during rendering
-	public void calculatePosition(float[] ref, float[] refRot, float[] refScale, float[] pos)
+	// Adds a child to the structure
+	public void addChild(Renderable child){children.add(child);}
+		
+	// Returns a specified child from the list
+	public Renderable getChild(int index){return children.get(index);}
+	
+	// Default Finalization, Finalizes the object and its components before rendering
+	public void finalizeRender()
 	{
-		float sinx = (float) Math.sin(refRot[0]);
-		float cosx = (float) Math.cos(refRot[0]);
-		float siny = (float) Math.sin(refRot[1]);
-		float cosy = (float) Math.cos(refRot[1]);
-		float sinz = (float) Math.sin(refRot[2]);
-		float cosz = (float) Math.cos(refRot[2]);
+		Iterator<Renderable> iterator = children.iterator();
+		finalizedList = new Renderable[children.size()];
 		
-		//Rotation Along x-axis
-		rotationalPosition[1] = pos[1]*cosx - pos[2]*sinx;
-		rotationalPosition[2] = pos[1]*sinx + pos[2]*cosx;
-
-		//Rotation Along y-axis
-		rotationalPosition[0] = pos[0]*cosy - rotationalPosition[2]*siny;
-		rotationalPosition[2] = pos[0]*siny + rotationalPosition[2]*cosy;
+		for(int i = 0; i < finalizedList.length; i++)
+		{
+			finalizedList[i] = iterator.next();
+			finalizedList[i].finalizeRender();
+			iterator.remove();
+		}
+	}
+	
+	// Default Rendering process, can be overwritten
+	public void render(final float[] refTransform, Camera camera) 
+	{
+		calculateTransform(refTransform);
 		
-		//Rotation Along z-axis
-		finalPosition[0] = (rotationalPosition[0]*cosz - rotationalPosition[1]*sinz)*refScale[0] + ref[0];
-		finalPosition[1] = (rotationalPosition[0]*sinz + rotationalPosition[1]*cosz)*refScale[1] + ref[1];
-		finalPosition[2] = (rotationalPosition[2])*refScale[2] + ref[2];
+		if(visible)
+			for(int i = 0; i < finalizedList.length; i++)
+				finalizedList[i].render(finalTransform, camera);
 	}
 	
 	// Calculates all transformations during rendering
-	public void calculatePosition(float[] ref, float[] refRot, float[] refScale)
+	public void calculateTransform(float[] refTransform)
 	{
-		calculatePosition(ref, refRot, refScale, position);
-		finalScale[0] = scale[0] + refScale[0];
-		finalScale[1] = scale[1] + refScale[1];
-		finalScale[2] = scale[2] + refScale[2];
-		finalRotation[0] = rotation[0] + refRot[0];
-		finalRotation[1] = rotation[1] + refRot[1];
-		finalRotation[2] = rotation[2] + refRot[2];
+		float sinx = (float) Math.sin(refTransform[ROT_X]);
+		float cosx = (float) Math.cos(refTransform[ROT_X]);
+		float siny = (float) Math.sin(refTransform[ROT_Y]);
+		float cosy = (float) Math.cos(refTransform[ROT_Y]);
+		float sinz = (float) Math.sin(refTransform[ROT_Z]);
+		float cosz = (float) Math.cos(refTransform[ROT_Z]);
+		
+		// Rotation Along x-axis
+		float rot_y = transform[POS_Y]*cosx - transform[POS_Z]*sinx;
+		float rot_z = transform[POS_Y]*sinx + transform[POS_Z]*cosx;
+
+		// Rotation Along y-axis
+		float rot_x = transform[POS_X]*cosy - rot_z*siny;
+		rot_z = transform[POS_X]*siny + rot_z*cosy;
+		
+		// Rotation Along z-axis
+		finalTransform[POS_X] = (rot_x*cosz - rot_y*sinz)*refTransform[SCA_X] + refTransform[POS_X];
+		finalTransform[POS_Y] = (rot_x*sinz + rot_y*cosz)*refTransform[SCA_Y] + refTransform[POS_Y];
+		finalTransform[POS_Z] = rot_z*refTransform[SCA_Z] + refTransform[POS_Z];
+		
+		// Other transformations
+		finalTransform[SCA_X] = transform[SCA_X] + refTransform[SCA_X];
+		finalTransform[SCA_Y] = transform[SCA_Y] + refTransform[SCA_Y];
+		finalTransform[SCA_Z] = transform[SCA_Z] + refTransform[SCA_Z];
+		finalTransform[ROT_X] = transform[ROT_X] + refTransform[ROT_X];
+		finalTransform[ROT_Y] = transform[ROT_Y] + refTransform[ROT_Y];
+		finalTransform[ROT_Z] = transform[ROT_Z] + refTransform[ROT_Z];
 	}
-	
-	// Toggles visibility of structure
-	public void toggleVisibility() { visible = !visible;}
 	
 	// Returns a renderable component of this object
 	public Renderable getRenderable(int i){return finalizedList[i];}
 	
 	// Returns number of existing structures created
 	public static int getNumStructures() {return numStructures;}
+	
+	public int size() {return children.size();}
+	public boolean isEmpty() {return children.isEmpty();}
 }

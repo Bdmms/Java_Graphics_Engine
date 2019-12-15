@@ -76,10 +76,10 @@ public class Application
 
 		env.addStructure(model);
 		env.addCamera(camera);
-		env.finalize();
-		model.position[0] = 1000;
-		model.position[1] = 0;
-		model.position[2] = 0;
+		env.finalizeRender();
+		model.transform[0] = 100;
+		model.transform[1] = 0;
+		model.transform[2] = 0;
 		
 		graphics = strategy.getDrawGraphics();
 		
@@ -127,24 +127,24 @@ public class Application
 	// Used to respond to control inputs
 	public void controller()
 	{
-		if(keys.inputs[KeyBinder.KEY_X_UP]) camera.position[0] += rate * Time.deltaTime;
-		if(keys.inputs[KeyBinder.KEY_X_DOWN]) camera.position[0] -= rate * Time.deltaTime; 
-		if(keys.inputs[KeyBinder.KEY_Y_UP]) camera.position[1] += rate * Time.deltaTime; 
-		if(keys.inputs[KeyBinder.KEY_Y_DOWN]) camera.position[1] -= rate * Time.deltaTime; 
-		if(keys.inputs[KeyBinder.KEY_Z_UP]) camera.position[2] += rate * Time.deltaTime; 
-		if(keys.inputs[KeyBinder.KEY_Z_DOWN]) camera.position[2] -= rate * Time.deltaTime; 
-		if(keys.inputs[KeyBinder.KEY_ROT_L]) model.rotation[2] += rate * Time.deltaTime; 
-		if(keys.inputs[KeyBinder.KEY_ROT_R]) model.rotation[2] -= rate * Time.deltaTime; 
-		if(keys.inputs[KeyBinder.KEY_ROT_U]) model.rotation[0] += rate * Time.deltaTime; 
-		if(keys.inputs[KeyBinder.KEY_ROT_D]) model.rotation[0] -= rate * Time.deltaTime; 
-		if(keys.inputs[KeyBinder.KEY_ROT_O]) model.rotation[1] += rate * Time.deltaTime; 
-		if(keys.inputs[KeyBinder.KEY_ROT_P]) model.rotation[1] -= rate * Time.deltaTime; 
+		if(keys.inputs[KeyBinder.KEY_X_UP]) camera.transform[0] += rate * Time.deltaTime;
+		if(keys.inputs[KeyBinder.KEY_X_DOWN]) camera.transform[0] -= rate * Time.deltaTime; 
+		if(keys.inputs[KeyBinder.KEY_Y_UP]) camera.transform[1] += rate * Time.deltaTime; 
+		if(keys.inputs[KeyBinder.KEY_Y_DOWN]) camera.transform[1] -= rate * Time.deltaTime; 
+		if(keys.inputs[KeyBinder.KEY_Z_UP]) camera.transform[2] += rate * Time.deltaTime; 
+		if(keys.inputs[KeyBinder.KEY_Z_DOWN]) camera.transform[2] -= rate * Time.deltaTime; 
+		if(keys.inputs[KeyBinder.KEY_ROT_L]) model.transform[Model.ROT_Z] += rate * Time.deltaTime; 
+		if(keys.inputs[KeyBinder.KEY_ROT_R]) model.transform[Model.ROT_Z] -= rate * Time.deltaTime; 
+		if(keys.inputs[KeyBinder.KEY_ROT_U]) model.transform[Model.ROT_X] += rate * Time.deltaTime; 
+		if(keys.inputs[KeyBinder.KEY_ROT_D]) model.transform[Model.ROT_X] -= rate * Time.deltaTime; 
+		if(keys.inputs[KeyBinder.KEY_ROT_O]) model.transform[Model.ROT_Y] += rate * Time.deltaTime; 
+		if(keys.inputs[KeyBinder.KEY_ROT_P]) model.transform[Model.ROT_Y] -= rate * Time.deltaTime; 
 		
 		for(int i = 0; i < 10; i++)
 		{
 			if(keys.inputs[KeyBinder.KEY_NUM + i])
 			{
-				model.getBodyGroup(i).toggleVisibility();
+				model.getChild(i).toggleVisibility();
 				keys.inputs[KeyBinder.KEY_NUM + i] = false;
 			}
 		}

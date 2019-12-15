@@ -18,7 +18,6 @@ public class Vertex
 	
 	private LinkedList<Face> faces = new LinkedList<Face>();// List of faces the vertex forms
 	private Line projection = new Line(ORIGIN, ORIGIN);		// Calculated rendered projection (do not set)
-	private float[] rotationalPosition = new float[3];		// Calculated rendered rotation position (do not set)
 	private float[] finalPosition = new float[3];			// Calculated rendered final position (do not set)
 	private int id;											// Unique id of vertex
 	private boolean projected = false;						// Whether vertex has been projected (used to prevent double projection)
@@ -46,32 +45,33 @@ public class Vertex
 	}
 	
 	// Calculates final position and projection for rendering purposes
-	public void updateProjection(float[] ref, float[] refRot, float[] refScale)
+	public void updateProjection(float[] refTransform)
 	{
+		// TODO: Fix projection pull to eliminate duplicate vertices
 		if(projected) 
 			return;
 		
-		float sinx = (float) Math.sin(refRot[0]);
-		float cosx = (float) Math.cos(refRot[0]);
-		float siny = (float) Math.sin(refRot[1]);
-		float cosy = (float) Math.cos(refRot[1]);
-		float sinz = (float) Math.sin(refRot[2]);
-		float cosz = (float) Math.cos(refRot[2]);
+		float sinx = (float) Math.sin(refTransform[Structure.ROT_X]);
+		float cosx = (float) Math.cos(refTransform[Structure.ROT_X]);
+		float siny = (float) Math.sin(refTransform[Structure.ROT_Y]);
+		float cosy = (float) Math.cos(refTransform[Structure.ROT_Y]);
+		float sinz = (float) Math.sin(refTransform[Structure.ROT_Z]);
+		float cosz = (float) Math.cos(refTransform[Structure.ROT_Z]);
 		
 		//-----POSITION-----
 		
 		//Rotation Along x-axis
-		rotationalPosition[1] = vertex[1]*cosx - vertex[2]*sinx;
-		rotationalPosition[2] = vertex[1]*sinx + vertex[2]*cosx;
+		float rot_y = vertex[1]*cosx - vertex[2]*sinx;
+		float rot_z = vertex[1]*sinx + vertex[2]*cosx;
 
 		//Rotation Along y-axis
-		rotationalPosition[0] = vertex[0]*cosy - rotationalPosition[2]*siny;
-		rotationalPosition[2] = vertex[0]*siny + rotationalPosition[2]*cosy;
+		float rot_x = vertex[0]*cosy - rot_z*siny;
+		rot_z = vertex[0]*siny + rot_z*cosy;
 		
 		//Rotation Along z-axis
-		finalPosition[0] = (rotationalPosition[0]*cosz - rotationalPosition[1]*sinz)*refScale[0] + ref[0];
-		finalPosition[1] = (rotationalPosition[0]*sinz + rotationalPosition[1]*cosz)*refScale[1] + ref[1];
-		finalPosition[2] = (rotationalPosition[2])*refScale[2] + ref[2];
+		finalPosition[0] = (rot_x*cosz - rot_y*sinz)*refTransform[Structure.SCA_X] + refTransform[Structure.POS_X];
+		finalPosition[1] = (rot_x*sinz + rot_y*cosz)*refTransform[Structure.SCA_Y] + refTransform[Structure.POS_Y];
+		finalPosition[2] = rot_z*refTransform[Structure.SCA_Z] + refTransform[Structure.POS_Z];
 		
 		projection.reset(finalPosition);
 		projected = true;

@@ -32,6 +32,8 @@ public class Material
 	float Tr = 0;							// Transparency
 	int width;								// Image width
 	int height;								// Image height
+	BinarySize bin_width;					// Binary Image width
+	BinarySize bin_height;					// Binary Image height
 	String name;							// Material name
 	
 	public Material(String nm)
@@ -39,6 +41,8 @@ public class Material
 		name = nm;
 		width = 1;
 		height = 1;
+		bin_width = BinarySize.x1;
+		bin_height = BinarySize.x1;
 		image = new int[width * height];
 		image[0] = 0x0000FF;
 	}
@@ -67,6 +71,8 @@ public class Material
 			
 			width =  b_image.getWidth();
 			height =  b_image.getHeight();
+			bin_width = BinarySize.match(width);
+			bin_height = BinarySize.match(height);
 		} catch (IOException e) { Application.throwError("ERROR - FAILED TO LOAD TEXTURE: " + file, this);}
 	}
 	

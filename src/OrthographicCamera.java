@@ -38,14 +38,14 @@ public class OrthographicCamera extends Camera
 	}
 	
 	// Finalizes camera resources before rendering process begins
-	public void finalize()
+	public void finalizeRender()
 	{
 		viewPlane = new Plane(new Vertex(viewDepth, -viewWidth/2, -viewHeight/2), new Vertex(viewDepth, viewWidth/2, -viewHeight/2), new Vertex(viewDepth, -viewWidth/2, viewHeight/2), width, height);
 		buffer = new RenderBuffer(width, height);
 	}
 	
 	// Updates the transformations of the view plane before rendering
-	public void updateTransformation(final float[] ref, final float[] rot, final float[] scale) 
+	public void render(final float[] refTransform, Camera camera) 
 	{
 		viewPlane.update(this);
 	}

@@ -8,13 +8,14 @@
 
 public class Face extends Renderable implements Runnable
 {
+	private static final boolean MULTI_THREAD = false;
+	
 	private static int numFace = 0;				// The total number of faces created
 	
-	private static float[][] pixelData = new float[3][3];	// Intermediate pixel data (do not set)
-	
 	private Thread renderExecution;
-	private RenderBuffer currentBuffer;			// Reference to currently rendered buffer
+	private Camera currentCamera;				// Reference to currently rendered camera
 	private RenderTriangle triangle;			// Currently rendered triangle (do not set)
+	private float[][] pixelData;				// Intermediate pixel data (do not set)
 	private BodyGroup root;						// The body group this face is part of
 	private Vertex[] vertices;					// The three vertices that make up the face
 	private float[] normal;						// The normal of the face
@@ -22,14 +23,20 @@ public class Face extends Renderable implements Runnable
 	private int id;								// The face's id
 	private byte numVertex = 0;					// The number of vertices added to the face
 	
+	// Cached Data
+	int[] textureData = new int[6];
+	int[] textVect1 = new int[2];
+	int[] textVect2 = new int[2];
+	
 	public Face(BodyGroup r, int[] f)
 	{
 		root = r;
 		id = numFace;
 		face = f;
 		numFace++;
-		triangle = new RenderTriangle();
+		triangle = new RenderTriangle(this);
 		vertices = new Vertex[3];
+		pixelData = new float[3][3];
 	}
 	
 	public Face(BodyGroup r)
@@ -40,8 +47,14 @@ public class Face extends Renderable implements Runnable
 	// Used to run rendering process on face
 	public void run()
 	{
+		//Find where each projection vector intersects view plane
+		if(!currentCamera.isFaceVisible(vertices, pixelData)) return;
+		
+		//Reset the renderable triangle to the intersecting points
+		triangle.reset(pixelData[0], pixelData[1], pixelData[2]);
+		
 		//Draw renderable triangle in the buffer
-		currentBuffer.fillTriangleSTV(triangle, root.material);
+		currentCamera.getBuffer().fillTriangleSTV(triangle, root.material);
 	}
 	
 	// Adds a vertex to the face
@@ -57,44 +70,54 @@ public class Face extends Renderable implements Runnable
 			numVertex++;
 		}
 	}
-	
-	// Updates the transformations of the face before rendering
-	public void updateTransformation(final float[] ref, final float[] rot, final float[] scale) 
-	{
-		vertices[0].updateProjection(ref, rot, scale);
-		vertices[1].updateProjection(ref, rot, scale);
-		vertices[2].updateProjection(ref, rot, scale);
-	}
 
 	// Renders the face to the display
-	public void render(Camera camera) 
+	public void render(final float[] refTransform, Camera camera) 
 	{
-		//Find where each projection vector intersects view plane
-		if(!camera.isFaceVisible(vertices, pixelData)) return;
-
-		//Reset the renderable triangle to the intersecting points
-		triangle.reset(pixelData[0], pixelData[1], pixelData[2], this);
+		// Updates vertices
+		vertices[0].updateProjection(refTransform);
+		vertices[1].updateProjection(refTransform);
+		vertices[2].updateProjection(refTransform);
 		
-		// Render Triangle (Single Thread)
-		camera.getBuffer().fillTriangleSTV(triangle, root.material);
-		
-		// Render Triangle (Multi-Thread)
-		//currentBuffer = camera.getBuffer();
-		//renderExecution.run();
+		if(MULTI_THREAD)
+		{
+			// Render Triangle (Multi-Thread)
+			currentCamera = camera;
+			renderExecution.run();
+		}
+		else
+		{
+			// Render Triangle (Single Thread)
+			if(!camera.isFaceVisible(vertices, pixelData)) return;
+			triangle.reset(pixelData[0], pixelData[1], pixelData[2]);
+			camera.getBuffer().fillTriangleSTV(triangle, root.material);
+		}
 	}
 	
 	// Finalizes the face before rendering, it checks to make sure face is valid
-	public void finalize()
+	public void finalizeRender()
 	{
 		if(numVertex < 3)
 			Application.throwError("FATAL ERROR - NOT ENOUGH VERTICES", this);
 		else
 			normal = Plane.getNormal(vertices[0].vertex, vertices[1].vertex, vertices[2].vertex);
 		
-		triangle = new RenderTriangle();
-		renderExecution = new Thread(this);
+		// Set texture data
+		for(int i = 0; i < 6; i++)
+			textureData[i] = (int)(vertices[i/2].texture[i%2] * root.material.getWidth());
 		
-		System.out.println("Preparing Face Thread: " + renderExecution.getName());
+		textVect1[0] = textureData[2] - textureData[0];
+		textVect1[1] = textureData[3] - textureData[1];
+		textVect2[0] = textureData[4] - textureData[0];
+		textVect2[1] = textureData[5] - textureData[1];
+		
+		triangle.update();
+		
+		if(MULTI_THREAD)
+		{
+			renderExecution = new Thread(this);
+			System.out.println("Preparing Face Thread: " + renderExecution.getName());
+		}
 	}
 	
 	public Vertex[] getVertecies() {return vertices;}

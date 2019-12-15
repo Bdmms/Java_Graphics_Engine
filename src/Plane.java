@@ -45,7 +45,8 @@ public class Plane
 	// Updates plane data based on camera position
 	public void update(Camera cam) 
 	{
-		intersectionNumerator = Line.dot(cam.position, normal) + constant;
+		// Note: transform also contains rotation and scale
+		intersectionNumerator = Line.dot(cam.transform, normal) + constant;
 		normal = getNormal(vertices[0].vertex, vertices[1].vertex, vertices[2].vertex);
 		constant = Line.dot(normal, vertices[0].vertex);
 		
