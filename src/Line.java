@@ -10,7 +10,6 @@ public class Line
 {
 	float[] vector;			// Direction vector of line
 	float[] point;			// Anchor position vector of line
-	private float mag = 0;	// Magnitude of vector
 	
 	public Line(float[] source, float[] pos)
 	{
@@ -31,7 +30,6 @@ public class Line
 		vector[0] = v2.vertex[0] - v1.vertex[0];
 		vector[1] = v2.vertex[1] - v1.vertex[1];
 		vector[2] = v2.vertex[2] - v1.vertex[2];
-		mag = (float) Math.sqrt(vector[0]*vector[0] + vector[1]*vector[1] + vector[2]*vector[2]);
 	}
 	
 	// Used to modify the line with recreating the object
@@ -41,7 +39,6 @@ public class Line
 		vector[0] = v2[0] - v1[0];
 		vector[1] = v2[1] - v1[1];
 		vector[2] = v2[2] - v1[2];
-		mag = (float) Math.sqrt(vector[0]*vector[0] + vector[1]*vector[1] + vector[2]*vector[2]);
 	}
 	
 	// Used to modify the line with recreating the object
@@ -51,7 +48,6 @@ public class Line
 		vector[0] = vect[0];
 		vector[1] = vect[1];
 		vector[2] = vect[2];
-		mag = (float) Math.sqrt(vector[0]*vector[0] + vector[1]*vector[1] + vector[2]*vector[2]);
 	}
 	
 	// Returns the dot product between the line and another vector
@@ -63,7 +59,13 @@ public class Line
 	// Returns the magnitude of the direction vector 
 	public float mag()
 	{
-		return mag;
+		return (float)Math.sqrt(vector[0]*vector[0] + vector[1]*vector[1] + vector[2]*vector[2]);
+	}
+	
+	// Returns the squared magnitude of the direction vector 
+	public float sqr_mag()
+	{
+		return vector[0]*vector[0] + vector[1]*vector[1] + vector[2]*vector[2];
 	}
 	
 	// Multiplies a vector by a scalar value

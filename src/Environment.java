@@ -1,3 +1,4 @@
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -18,8 +19,6 @@ public class Environment
 	private Camera mainCamera;						// The main camera used for rendering
 	private boolean finalized = false;				// Whether the environment has been finalized
 	
-	private float[] anchorTransform = {0,0,0,0,0,0,1,1,1}; // The anchor transformation of the environment
-	
 	// Adds a structure to the environment
 	public void addStructure(Structure m) {structures.add(m);}
 	
@@ -28,20 +27,6 @@ public class Environment
 	{
 		cameras.add(cam);
 		structures.add(cam);
-	}
-	
-	// Projects the vertices present in the environment to the camera and renders the structures
-	public BufferedImage project(Camera camera)
-	{
-		camera.getBuffer().refresh();
-		
-		for(int i = 0; i < 6; i++)
-			anchorTransform[i] = -camera.transform[i];
-		
-		for(int i = 0; i < finalizedList.length; i++)
-			finalizedList[i].render(anchorTransform, camera);
-		
-		return camera.getBuffer().render();
 	}
 	
 	// Finalizes all components so that they can be rendering
@@ -63,11 +48,14 @@ public class Environment
 	}
 	
 	// Renders the environment and its components
-	public BufferedImage drawEnvironment()
+	public BufferedImage drawEnvironment(Graphics g)
 	{
 		if(!finalized)
 			finalizeRender();
 		
-		return project(mainCamera);
+		mainCamera.graphics = g;
+		mainCamera.project(finalizedList);
+		
+		return mainCamera.generateRender();
 	}
 }

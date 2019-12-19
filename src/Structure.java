@@ -70,12 +70,24 @@ public abstract class Structure extends Renderable
 	// Calculates all transformations during rendering
 	public void calculateTransform(float[] refTransform)
 	{
-		float sinx = (float) Math.sin(refTransform[ROT_X]);
-		float cosx = (float) Math.cos(refTransform[ROT_X]);
-		float siny = (float) Math.sin(refTransform[ROT_Y]);
-		float cosy = (float) Math.cos(refTransform[ROT_Y]);
-		float sinz = (float) Math.sin(refTransform[ROT_Z]);
-		float cosz = (float) Math.cos(refTransform[ROT_Z]);
+		// OLD METHOD
+		//float sinx = (float) Math.sin(refTransform[ROT_X]);
+		//float cosx = (float) Math.cos(refTransform[ROT_X]);
+		//float siny = (float) Math.sin(refTransform[ROT_Y]);
+		//float cosy = (float) Math.cos(refTransform[ROT_Y]);
+		//float sinz = (float) Math.sin(refTransform[ROT_Z]);
+		//float cosz = (float) Math.cos(refTransform[ROT_Z]);
+		
+		// NEW METHOD
+		int lookup_x = (int)(refTransform[Structure.ROT_X] * SIN_CONVERT) & 0xFFFF;
+		int lookup_y = (int)(refTransform[Structure.ROT_Y] * SIN_CONVERT) & 0xFFFF;
+		int lookup_z = (int)(refTransform[Structure.ROT_Z] * SIN_CONVERT) & 0xFFFF;
+		float sinx = SINE[lookup_x];
+		float cosx = COSINE[lookup_x];
+		float siny = SINE[lookup_y];
+		float cosy = COSINE[lookup_y];
+		float sinz = SINE[lookup_z];
+		float cosz = COSINE[lookup_z];
 		
 		// Rotation Along x-axis
 		float rot_y = transform[POS_Y]*cosx - transform[POS_Z]*sinx;

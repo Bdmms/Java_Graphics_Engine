@@ -22,8 +22,8 @@ public class Application
 	private Frame frame;				//Display frame
 	private KeyBinder keys;				//Control binder
 	
-	private float rate = 6.0f;			//Rate of rotation
-	private float scale = 1.00f;		//Scale of external to internal
+	private float rate = 0.3f;			//Rate of rotation
+	private float scale = 1.0f;		//Scale of external to internal
 	private int internalWidth;			//Internal Resolution
 	private int internalHeight;
 	private int externalWidth;			//Display Resolution
@@ -69,6 +69,8 @@ public class Application
 		
 		// Manually adding model and camera
 		camera = new OrthographicCamera(1.5f, 1.0f, 10.0f, internalWidth, internalHeight);
+		//camera = new OrthographicRayCamera((float)Math.PI/2, (float)Math.PI/2, internalWidth, internalHeight);
+		
 		//model = new Model("models\\HyruleCastle\\", "hyrule_castle.obj");
 		model = new Model("models\\The Legend of Zelda - Twilight Princess\\Spinner\\", "spinner.obj");
 		//model = new Model("models\\The Legend of Zelda - Twilight Princess\\King Bulblin Test Area\\", "king bulblin test area.obj");
@@ -80,6 +82,8 @@ public class Application
 		model.transform[0] = 100;
 		model.transform[1] = 0;
 		model.transform[2] = 0;
+
+		rate = 3.0f;
 		
 		graphics = strategy.getDrawGraphics();
 		
@@ -102,14 +106,16 @@ public class Application
 	// Refreshes the display
 	public void refresh()
 	{
-		buffer = env.drawEnvironment();
-		
 		do 
 		{
 			// Create Graphic Context
         	graphics = strategy.getDrawGraphics();
         	
         	// Graphic Rendering
+        	graphics.setColor(Color.BLACK);
+        	graphics.fillRect(0, 0, externalWidth, externalHeight);
+        	
+        	buffer = env.drawEnvironment(graphics);
         	graphics.drawImage(buffer, 0, 0, externalWidth, externalHeight, w);
         	
         	graphics.setColor(Color.WHITE);
@@ -127,12 +133,12 @@ public class Application
 	// Used to respond to control inputs
 	public void controller()
 	{
-		if(keys.inputs[KeyBinder.KEY_X_UP]) camera.transform[0] += rate * Time.deltaTime;
-		if(keys.inputs[KeyBinder.KEY_X_DOWN]) camera.transform[0] -= rate * Time.deltaTime; 
-		if(keys.inputs[KeyBinder.KEY_Y_UP]) camera.transform[1] += rate * Time.deltaTime; 
-		if(keys.inputs[KeyBinder.KEY_Y_DOWN]) camera.transform[1] -= rate * Time.deltaTime; 
-		if(keys.inputs[KeyBinder.KEY_Z_UP]) camera.transform[2] += rate * Time.deltaTime; 
-		if(keys.inputs[KeyBinder.KEY_Z_DOWN]) camera.transform[2] -= rate * Time.deltaTime; 
+		if(keys.inputs[KeyBinder.KEY_X_UP]) camera.transform[0] -= rate * Time.deltaTime;
+		if(keys.inputs[KeyBinder.KEY_X_DOWN]) camera.transform[0] += rate * Time.deltaTime; 
+		if(keys.inputs[KeyBinder.KEY_Y_UP]) camera.transform[1] -= rate * Time.deltaTime; 
+		if(keys.inputs[KeyBinder.KEY_Y_DOWN]) camera.transform[1] += rate * Time.deltaTime; 
+		if(keys.inputs[KeyBinder.KEY_Z_UP]) camera.transform[2] -= rate * Time.deltaTime; 
+		if(keys.inputs[KeyBinder.KEY_Z_DOWN]) camera.transform[2] += rate * Time.deltaTime; 
 		if(keys.inputs[KeyBinder.KEY_ROT_L]) model.transform[Model.ROT_Z] += rate * Time.deltaTime; 
 		if(keys.inputs[KeyBinder.KEY_ROT_R]) model.transform[Model.ROT_Z] -= rate * Time.deltaTime; 
 		if(keys.inputs[KeyBinder.KEY_ROT_U]) model.transform[Model.ROT_X] += rate * Time.deltaTime; 
@@ -203,7 +209,16 @@ public class Application
 	}
 	
 	// Debug only! Prints an array of floats to the console (use for printing vectors)
-	public static void printFloatArr(float[] arr)
+	public static void printArray(float[] arr)
+	{
+		System.out.print(arr[0]);
+		for(int i = 1; i < arr.length; i++)
+			System.out.print(", " + arr[i]);
+		System.out.print("\n");
+	}
+	
+	// Debug only! Prints an array of floats to the console (use for printing vectors)
+	public static void printArray(int[] arr)
 	{
 		System.out.print(arr[0]);
 		for(int i = 1; i < arr.length; i++)

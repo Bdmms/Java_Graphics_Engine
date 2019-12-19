@@ -29,12 +29,16 @@ public class RenderTriangle
 	private float height;	// Boundary height of triangle
 	boolean remove = false;	// Flag used to destroy this object
 	
-	float int_vector_t;
-	float int_vector_numerator;
+	float int_vector_t_ratio = 0;
+	float int_vector_inv_t = 0;
+	float int_vector_denomonator = 0;
+	float int_vector_t_constant = 0;
 	
 	public RenderTriangle(Face face)
 	{
 		ref = face;
+		sInc = 0;
+		tInc = 0;
 	}
 	
 	// Used to update fixed parameters within the object
@@ -90,8 +94,10 @@ public class RenderTriangle
 		// Safe Increment value
 		sInc = width > height ? 1/(width) : 1/(height);
 		
-		int_vector_t = tVector[0] / tVector[1];
-		int_vector_numerator = sVector[0] - tVector[0]/tVector[1]*sVector[1];
+		int_vector_denomonator = 1/(sVector[0] - tVector[0]/tVector[1]*sVector[1]);
+		int_vector_t_ratio = (tVector[0] / tVector[1]);
+		int_vector_t_constant = (refPoint[0] - int_vector_t_ratio * refPoint[1]);
+		int_vector_inv_t = 1/ tVector[1];
 		
 		/*
 		float s_width = Math.abs(sVector[0]) + 1;
@@ -105,6 +111,7 @@ public class RenderTriangle
 		*/
 	}
 	
+	@Deprecated
 	public boolean lineIntersection(float[] src0, float[] vect0, float[] src1, float[] vect1, float[] intersection)
 	{
 		if(vect0[0] / vect0[1] == vect1[0] / vect1[1])
@@ -146,8 +153,8 @@ public class RenderTriangle
 	{
 		if(tVector[1] != 0)
 		{
-			float s = (x - refPoint[0] - int_vector_t * (y - refPoint[1])) / int_vector_numerator;
-			float t = (y - refPoint[1] - sVector[1] * s) / tVector[1];
+			float s = (x - int_vector_t_constant - int_vector_t_ratio * y) * int_vector_denomonator;
+			float t = (y - refPoint[1] - sVector[1] * s) * int_vector_inv_t;
 
 			return (s > 0 && t > 0 && s + t < 1);
 		}
@@ -155,7 +162,7 @@ public class RenderTriangle
 			return false;
 	}
 	
-	// Solves for s and t based on (x, y) position
+	// Solves for s, t, and depth based on (x, y) position
 	public void solveForST(float x, float y, float[] ST)
 	{
 		//x = x0 + v1x*s + v2x*t 
@@ -169,11 +176,8 @@ public class RenderTriangle
 		//s * (1 - v2x/v2y*v1y/v1x) = (x - x0 - v2x/v2y*(y - y0)) / v1x 
 		//s = (x - x0 - v2x/v2y*(y - y0)) / (v1x - v2x/v2y*v1y)
 		
-		ST[0] = (x - refPoint[0] - tVector[0] / tVector[1] * (y - refPoint[1])) / (sVector[0] - tVector[0]/tVector[1]*sVector[1]);
-		ST[1] = (y - refPoint[1] - sVector[1] * ST[0]) / tVector[1];
-		ST[2] = refPoint[2] + ST[0]*sVector[2] + ST[1]*tVector[2];
-		ST[3] = textureX + ST[0]*sVector[3] + ST[1]*tVector[3];
-		ST[4] = textureY + ST[0]*sVector[4] + ST[1]*tVector[4];
+		ST[0] = (x - int_vector_t_constant - int_vector_t_ratio * y) * int_vector_denomonator;
+		ST[1] = (y - refPoint[1] - sVector[1] * ST[0]) * int_vector_inv_t;
 	}
 	
 	public float getWidth() {return width;}
@@ -195,7 +199,7 @@ public class RenderTriangle
 		for(int i = 0; i < numClips; i++)
 		{
 			System.out.print("Clip Eq. " + i + ": ");
-			Application.printFloatArr(clipEq[i]);
+			Application.printArray(clipEq[i]);
 		}
 	}
 }

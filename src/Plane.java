@@ -14,12 +14,16 @@ public class Plane
 	float[] anchor;								// Anchor vector
 	float[] vectorS = new float[3];				// S-comp vector
 	float[] vectorT = new float[3];				// T-comp vector
+	float[] vectorT_inv = new float[3];			// Reciprocal of t-comp vector
 	float constant = 0;							// Plane constant
 	int virtualWidth;
 	int virtualHeight;
 	
+	// Intermediates
 	float int_vector_t;
 	float int_vector_numerator;
+	float int_vector_anchor;
+	float int_vector_inv_t_height;
 	
 	//Other
 	float intersectionNumerator;	// Intermediate calculation
@@ -54,10 +58,14 @@ public class Plane
 		{
 			vectorS[a] = vertices[1].vertex[a] - vertices[0].vertex[a];
 			vectorT[a] = vertices[2].vertex[a] - vertices[0].vertex[a];
+			vectorT_inv[a] = 1 / vectorT[a];
 		}
 		
-		int_vector_t = vectorT[1] / vectorT[2];
-		int_vector_numerator = vectorS[1] - vectorT[1]/vectorT[2]*vectorS[2];
+		// Update constant intermediate values
+		int_vector_t = vectorT[1] * vectorT_inv[2];
+		int_vector_numerator = 1/(vectorS[1] - vectorT[1] * vectorT_inv[2] * vectorS[2]);
+		int_vector_anchor = int_vector_t * anchor[2] - anchor[1];
+		int_vector_inv_t_height = vectorT_inv[2] * virtualHeight;
 	}
 	
 	// Calculates intersection of line to plane
@@ -74,15 +82,15 @@ public class Plane
 			intersectionPoint[1] = line.point[1] + line.vector[1] * tValue; //Y
 			intersectionPoint[2] = line.point[2] + line.vector[2] * tValue; //Z
 			
-			p2D[0] = (intersectionPoint[1] - anchor[1] - int_vector_t * (intersectionPoint[2] - anchor[2])) / int_vector_numerator;
-			p2D[1] = ((intersectionPoint[2] - anchor[2] - vectorS[2] * p2D[0]) / vectorT[2]) * virtualHeight;
+			p2D[0] = (intersectionPoint[1] + int_vector_anchor - int_vector_t * intersectionPoint[2]) * int_vector_numerator;
+			p2D[1] = (intersectionPoint[2] - anchor[2] - vectorS[2] * p2D[0]) * int_vector_inv_t_height;
 			p2D[0] *= virtualWidth;
-			p2D[2] = line.mag();
+			p2D[2] = line.vector[0]*line.vector[0] + line.vector[1]*line.vector[1] + line.vector[2]*line.vector[2];
 			
 			return true;
 		}
-		else
-			return false;
+
+		return false;
 	}
 	
 	// Solve for s and t from intersection point
@@ -98,8 +106,8 @@ public class Plane
 		
 		//s = ((y - y0 + v2y/v2z*(z - z0) )/v1y) / (1 - v2y/v2z*v1z/v1y)
 		
-		p2D[0] = (intersect[1] - anchor[1] - int_vector_t * (intersect[2] - anchor[2])) / int_vector_numerator;
-		p2D[1] = ((intersect[2] - anchor[2] - vectorS[2] * p2D[0]) / vectorT[2]) * h;
+		p2D[0] = (intersect[1] - anchor[1] - int_vector_t * (intersect[2] - anchor[2])) * int_vector_numerator;
+		p2D[1] = ((intersect[2] - anchor[2] - vectorS[2] * p2D[0]) * vectorT_inv[2]) * h;
 		p2D[0] *= w;
 		
 		/*

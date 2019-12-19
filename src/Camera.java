@@ -1,3 +1,6 @@
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+
 /*
  * File: Camera.java
  * Author: Sean Rannie
@@ -16,6 +19,9 @@ public abstract class Camera extends Structure
 	protected RenderBuffer buffer;	// Buffer of the display
 	protected int width;				// Width of display
 	protected int height;				// Height of display
+	protected int size;					// Size of the display array
+	
+	public Graphics graphics;
 	
 	public Camera(int w, int h)
 	{
@@ -25,7 +31,7 @@ public abstract class Camera extends Structure
 		numCameras++;
 	}
 	
-	public abstract boolean isFaceVisible(Vertex[] vertices, float[][] pixelData);
+	public abstract boolean getIntersection(Vertex[] vertices, float[][] pixelData);
 	public abstract float[] getVertexPosition(Line pos);
 	
 	// Resizes the display resolution
@@ -33,12 +39,34 @@ public abstract class Camera extends Structure
 	{
 		this.width = width;
 		this.height = height;
+		this.size = width * height;
+	}
+	
+	public void finalizeRender()
+	{
+		buffer = new RenderBuffer(width, height);
 	}
 	
 	// Nullifies rendering process
 	public void render(final float[] refTransform, final Camera camera) 
 	{
+		return;
+	}
+	
+	// Projects the vertices present in the environment to the camera and renders the structures
+	public void project(Renderable[] list)
+	{
+		buffer.refresh();
 		
+		// Note: transformation is treated as negative
+		for(int i = 0; i < list.length; i++)
+			list[i].render(transform, this);
+	}
+	
+	// Renders the final image
+	public BufferedImage generateRender()
+	{
+		return buffer.render();
 	}
 	
 	// Renders the camera (does nothing)

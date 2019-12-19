@@ -20,11 +20,11 @@ public class Vertex
 	private Line projection = new Line(ORIGIN, ORIGIN);		// Calculated rendered projection (do not set)
 	private float[] finalPosition = new float[3];			// Calculated rendered final position (do not set)
 	private int id;											// Unique id of vertex
-	private boolean projected = false;						// Whether vertex has been projected (used to prevent double projection)
-	
+
 	float[] vertex = new float[3];	// Position vector
 	float[] normal = new float[3];	// Normal vector
 	float[] texture = new float[2]; // Texture vector
+	float[] appliedText = new float[2]; // Final texture coordinates
 	
 	public Vertex(float[] loc) 
 	{
@@ -47,18 +47,24 @@ public class Vertex
 	// Calculates final position and projection for rendering purposes
 	public void updateProjection(float[] refTransform)
 	{
-		// TODO: Fix projection pull to eliminate duplicate vertices
-		if(projected) 
-			return;
+		// OLD METHOD
+		//float sinx = (float) Math.sin(refTransform[Structure.ROT_X]);
+		//float cosx = (float) Math.cos(refTransform[Structure.ROT_X]);
+		//float siny = (float) Math.sin(refTransform[Structure.ROT_Y]);
+		//float cosy = (float) Math.cos(refTransform[Structure.ROT_Y]);
+		//float sinz = (float) Math.sin(refTransform[Structure.ROT_Z]);
+		//float cosz = (float) Math.cos(refTransform[Structure.ROT_Z]);
 		
-		float sinx = (float) Math.sin(refTransform[Structure.ROT_X]);
-		float cosx = (float) Math.cos(refTransform[Structure.ROT_X]);
-		float siny = (float) Math.sin(refTransform[Structure.ROT_Y]);
-		float cosy = (float) Math.cos(refTransform[Structure.ROT_Y]);
-		float sinz = (float) Math.sin(refTransform[Structure.ROT_Z]);
-		float cosz = (float) Math.cos(refTransform[Structure.ROT_Z]);
-		
-		//-----POSITION-----
+		// NEW METHOD
+		int lookup_x = (int)(refTransform[Structure.ROT_X] * Renderable.SIN_CONVERT) & 0xFFFF;
+		int lookup_y = (int)(refTransform[Structure.ROT_Y] * Renderable.SIN_CONVERT) & 0xFFFF;
+		int lookup_z = (int)(refTransform[Structure.ROT_Z] * Renderable.SIN_CONVERT) & 0xFFFF;
+		float sinx = Renderable.SINE[lookup_x];
+		float cosx = Renderable.COSINE[lookup_x];
+		float siny = Renderable.SINE[lookup_y];
+		float cosy = Renderable.COSINE[lookup_y];
+		float sinz = Renderable.SINE[lookup_z];
+		float cosz = Renderable.COSINE[lookup_z];
 		
 		//Rotation Along x-axis
 		float rot_y = vertex[1]*cosx - vertex[2]*sinx;
@@ -74,7 +80,6 @@ public class Vertex
 		finalPosition[2] = rot_z*refTransform[Structure.SCA_Z] + refTransform[Structure.POS_Z];
 		
 		projection.reset(finalPosition);
-		projected = true;
 	}
 	
 	// Adds texture coordinates to vector
@@ -89,19 +94,15 @@ public class Vertex
 	// Adds a connected face to the list
 	public void addFace(Face f) {faces.add(f);}
 	
-	// Returns the depth of the rendered projection (use only after projection)
-	public float getDepth() {return projection.mag();}
-	
 	// Returns id of vertex
 	public int getID() {return id;}
 	
 	// Returns base face of vertex
 	public Face getFirstFace() {return faces.getFirst();}
 	
-	// Returns projection and resets the projected flag
+	// Returns projection
 	public Line pullProjection() 
 	{
-		projected = false;
 		return projection;
 	}
 	
@@ -109,8 +110,8 @@ public class Vertex
 	public void print()
 	{
 		System.out.println("Vertex: " + id);
-		Application.printFloatArr(vertex);
-		Application.printFloatArr(normal);
-		Application.printFloatArr(texture);
+		Application.printArray(vertex);
+		Application.printArray(normal);
+		Application.printArray(texture);
 	}
 }

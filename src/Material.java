@@ -57,6 +57,7 @@ public class Material
 	
 	public int[] getTexture(){return image;}
 	public int getWidth() {return width;}
+	public int getHeight() {return height;}
 	
 	// Reads image from filename and returns it as an array
 	private void readImage(String file)
@@ -168,13 +169,13 @@ public class Material
 		System.out.println("Material: " + name + " (" + file +')');
 		System.out.println((width) + "x" + (height));
 		System.out.print("Ka: ");
-		Application.printFloatArr(Ka);
+		Application.printArray(Ka);
 		System.out.print("Kd: ");
-		Application.printFloatArr(Kd);
+		Application.printArray(Kd);
 		System.out.print("Ks: ");
-		Application.printFloatArr(Ks);
+		Application.printArray(Ks);
 		System.out.print("Ke: ");
-		Application.printFloatArr(Ke);
+		Application.printArray(Ke);
 		System.out.println("Ns: " + Ns);
 	}
 }

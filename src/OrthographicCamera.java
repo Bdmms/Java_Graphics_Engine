@@ -19,10 +19,9 @@ public class OrthographicCamera extends Camera
 		viewWidth = vW;
 		viewHeight = vH;
 		viewDepth = vD;
-		setResolution(w, h);
 	}
 	
-	public boolean isFaceVisible(Vertex[] vertices, float[][] pixelData)
+	public boolean getIntersection(Vertex[] vertices, float[][] pixelData)
 	{
 		return 	viewPlane.intersectionAlongPlane(vertices[0].pullProjection(), pixelData[0]) &&
 				viewPlane.intersectionAlongPlane(vertices[1].pullProjection(), pixelData[1]) &&
