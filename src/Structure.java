@@ -26,6 +26,7 @@ public abstract class Structure extends Renderable
 	public String name;						// Name of structure
 	public float[] transform = {0,0,0,0,0,0,1,1,1}; //Transformation matrix
 	private float[] finalTransform = {0,0,0,0,0,0,1,1,1};	// Calculated rendering transformation matrix
+	private TransformLookup transform_cache;
 	
 	protected LinkedList<Renderable> children;	// The dynamic list of children stored within the structure
 	protected Renderable[] finalizedList;		// Finalized list used to automate rendering process
@@ -33,6 +34,7 @@ public abstract class Structure extends Renderable
 	public Structure(String name)
 	{
 		children = new LinkedList<Renderable>();
+		transform_cache = new TransformLookup();
 		this.name = name;
 		numStructures++;
 	}
@@ -70,15 +72,6 @@ public abstract class Structure extends Renderable
 	// Calculates all transformations during rendering
 	public void calculateTransform(float[] refTransform)
 	{
-		// OLD METHOD
-		//float sinx = (float) Math.sin(refTransform[ROT_X]);
-		//float cosx = (float) Math.cos(refTransform[ROT_X]);
-		//float siny = (float) Math.sin(refTransform[ROT_Y]);
-		//float cosy = (float) Math.cos(refTransform[ROT_Y]);
-		//float sinz = (float) Math.sin(refTransform[ROT_Z]);
-		//float cosz = (float) Math.cos(refTransform[ROT_Z]);
-		
-		// NEW METHOD
 		int lookup_x = (int)(refTransform[Structure.ROT_X] * SIN_CONVERT) & 0xFFFF;
 		int lookup_y = (int)(refTransform[Structure.ROT_Y] * SIN_CONVERT) & 0xFFFF;
 		int lookup_z = (int)(refTransform[Structure.ROT_Z] * SIN_CONVERT) & 0xFFFF;

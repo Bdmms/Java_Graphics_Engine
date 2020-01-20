@@ -93,6 +93,45 @@ public class Plane
 		return false;
 	}
 	
+	// Calculates intersection of all three lines (triangle) to the plane
+	public boolean intersectionAlongPlane(RenderableTriangle tri)
+	{
+		//Parameters for the t value
+		float parallel0 = Line.dot(tri.projections[0], normal);
+		float parallel1 = Line.dot(tri.projections[1], normal);
+		float parallel2 = Line.dot(tri.projections[2], normal);
+		
+		if(parallel0 > 0 && parallel1 > 0 && parallel2 > 0) //If parallel -> line does not intersect
+		{
+			// 1st Vertex
+			float[] p2D = tri.pixelData[0];
+			float[] line = tri.projections[0];
+			float tValue = intersectionNumerator / parallel0;
+			p2D[0] = (int_vector_anchor - tValue*(int_vector_t * line[2] + line[1])) * int_vector_numerator;
+			p2D[1] = (line[2] * tValue - anchor[2] - vectorS[2] * p2D[0]) * int_vector_inv_t_height;
+			p2D[0] *= virtualWidth;
+			p2D[2] = line[0]*line[0] + line[1]*line[1] + line[2]*line[2];
+			// 2nd Vertex
+			p2D = tri.pixelData[1];
+			line = tri.projections[1];
+			tValue = intersectionNumerator / parallel1;
+			p2D[0] = (int_vector_anchor - tValue*(int_vector_t * line[2] + line[1])) * int_vector_numerator;
+			p2D[1] = (line[2] * tValue - anchor[2] - vectorS[2] * p2D[0]) * int_vector_inv_t_height;
+			p2D[0] *= virtualWidth;
+			p2D[2] = line[0]*line[0] + line[1]*line[1] + line[2]*line[2];
+			// 3rd Vertex
+			p2D = tri.pixelData[2];
+			line = tri.projections[2];
+			tValue = intersectionNumerator / parallel2;
+			p2D[0] = (int_vector_anchor - tValue*(int_vector_t * line[2] + line[1])) * int_vector_numerator;
+			p2D[1] = (line[2] * tValue - anchor[2] - vectorS[2] * p2D[0]) * int_vector_inv_t_height;
+			p2D[0] *= virtualWidth;
+			p2D[2] = line[0]*line[0] + line[1]*line[1] + line[2]*line[2];
+			return true;
+		}
+		return false;
+	}
+	
 	// Solve for s and t from intersection point
 	public void solveForST(float[] intersect, float[] p2D, int w, int h)
 	{
@@ -153,5 +192,18 @@ public class Plane
 		normal[2] = v1[0]*v2[1] - v1[1]*v2[0];
 		
 		return normal;
+	}
+	
+	public static void setNormal(float[] normal, float[] p1, float[] p2, float[] p3)
+	{
+		float v1_x = p2[0] - p1[0];
+		float v1_y = p2[1] - p1[1];
+		float v1_z = p2[2] - p1[2];
+		float v2_x = p3[0] - p1[0];
+		float v2_y = p3[1] - p1[1];
+		float v2_z = p3[2] - p1[2];
+		normal[0] = v1_y*v2_z - v1_z*v2_y;
+		normal[1] = v1_z*v2_x - v1_x*v2_z;
+		normal[2] = v1_x*v2_y - v1_y*v2_x;
 	}
 }

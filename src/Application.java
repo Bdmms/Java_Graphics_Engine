@@ -23,7 +23,7 @@ public class Application
 	private KeyBinder keys;				//Control binder
 	
 	private float rate = 0.3f;			//Rate of rotation
-	private float scale = 1.0f;		//Scale of external to internal
+	private float scale = 1.0f;			//Scale of external to internal
 	private int internalWidth;			//Internal Resolution
 	private int internalHeight;
 	private int externalWidth;			//Display Resolution
@@ -72,8 +72,8 @@ public class Application
 		//camera = new OrthographicRayCamera((float)Math.PI/2, (float)Math.PI/2, internalWidth, internalHeight);
 		
 		//model = new Model("models\\HyruleCastle\\", "hyrule_castle.obj");
-		model = new Model("models\\The Legend of Zelda - Twilight Princess\\Spinner\\", "spinner.obj");
-		//model = new Model("models\\The Legend of Zelda - Twilight Princess\\King Bulblin Test Area\\", "king bulblin test area.obj");
+		//model = new Model("models\\The Legend of Zelda - Twilight Princess\\Spinner\\", "spinner.obj");
+		model = new Model("models\\The Legend of Zelda - Twilight Princess\\King Bulblin Test Area\\", "king bulblin test area.obj");
 		//model = new Model("models\\Lethe T-Posed\\", "Lethe T-Posed.obj");
 
 		env.addStructure(model);

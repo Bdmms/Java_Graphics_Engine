@@ -45,9 +45,7 @@ public class Line
 	public void reset(float[] vect)
 	{
 		point = Vertex.ORIGIN;
-		vector[0] = vect[0];
-		vector[1] = vect[1];
-		vector[2] = vect[2];
+		vector = vect;
 	}
 	
 	// Returns the dot product between the line and another vector
@@ -77,17 +75,29 @@ public class Line
 	}
 	
 	// Divides a vector by a scalar value
-	public static float[] divide(float[] vect, float mult)
+	public static void divide(float[] result, float[] vect, float mult)
+	{
+		for(byte a = 0; a < vect.length; a++)
+			result[a] = vect[a] / mult;
+	}
+	
+	public static void divideBy(float[] vect, float mult)
 	{
 		for(byte a = 0; a < vect.length; a++)
 			vect[a] /= mult;
-		return vect;
 	}
 	
 	// Returns the unit vector
 	public static float[] unit(float[] vect)
 	{
-		return divide(vect, mag(vect));
+		divideBy(vect, mag(vect));
+		return vect;
+	}
+	
+	// Sets the unit vector
+	public static void unit(float[] unit, float[] vect)
+	{
+		divide(unit, vect, mag(vect));
 	}
 	
 	// Returns the magnitude of the vector

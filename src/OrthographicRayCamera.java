@@ -43,6 +43,11 @@ public class OrthographicRayCamera extends Camera
 	
 	private Face f = new Face(null, null);
 	
+	public void render(RenderableTriangle tri)
+	{
+		
+	}
+	
 	public boolean getIntersection(Vertex[] vertices, float[][] pixelData)
 	{
 		int xmin = (int)(Math.random() * width * 0.5);

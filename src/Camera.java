@@ -31,7 +31,7 @@ public abstract class Camera extends Structure
 		numCameras++;
 	}
 	
-	public abstract boolean getIntersection(Vertex[] vertices, float[][] pixelData);
+	public abstract void render(RenderableTriangle tri);
 	public abstract float[] getVertexPosition(Line pos);
 	
 	// Resizes the display resolution
@@ -48,7 +48,7 @@ public abstract class Camera extends Structure
 	}
 	
 	// Nullifies rendering process
-	public void render(final float[] refTransform, final Camera camera) 
+	public void render(TransformLookup transform, final Camera camera) 
 	{
 		return;
 	}

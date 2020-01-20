@@ -21,11 +21,10 @@ public class OrthographicCamera extends Camera
 		viewDepth = vD;
 	}
 	
-	public boolean getIntersection(Vertex[] vertices, float[][] pixelData)
+	public void render(RenderableTriangle tri)
 	{
-		return 	viewPlane.intersectionAlongPlane(vertices[0].pullProjection(), pixelData[0]) &&
-				viewPlane.intersectionAlongPlane(vertices[1].pullProjection(), pixelData[1]) &&
-				viewPlane.intersectionAlongPlane(vertices[2].pullProjection(), pixelData[2]);
+		if(viewPlane.intersectionAlongPlane(tri))
+			buffer.fillTrianglePPR_DL(tri.pixelData[0], tri.pixelData[1], tri.pixelData[2], tri.material);
 	}
 	
 	// Returns intersection point of a line to the camera's view plane (Used in debug)
