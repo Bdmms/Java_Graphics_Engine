@@ -72,8 +72,8 @@ public class Application
 		//camera = new OrthographicRayCamera((float)Math.PI/2, (float)Math.PI/2, internalWidth, internalHeight);
 		
 		//model = new Model("models\\HyruleCastle\\", "hyrule_castle.obj");
-		//model = new Model("models\\The Legend of Zelda - Twilight Princess\\Spinner\\", "spinner.obj");
-		model = new Model("models\\The Legend of Zelda - Twilight Princess\\King Bulblin Test Area\\", "king bulblin test area.obj");
+		model = new Model("models\\The Legend of Zelda - Twilight Princess\\Spinner\\", "spinner.obj");
+		//model = new Model("models\\The Legend of Zelda - Twilight Princess\\King Bulblin Test Area\\", "king bulblin test area.obj");
 		//model = new Model("models\\Lethe T-Posed\\", "Lethe T-Posed.obj");
 
 		env.addStructure(model);

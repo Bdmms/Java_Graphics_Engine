@@ -10,7 +10,6 @@ public class Face extends Renderable
 {
 	private static int numFace = 0;				// The total number of faces created
 	
-	private TransformLookup transform_cache;
 	private RenderableTriangle render_tri;
 	private float[][] pixelData;				// Intermediate pixel data (do not set)
 	private float[][] unit_proj;
@@ -38,7 +37,6 @@ public class Face extends Renderable
 		unit_proj = new float[3][3];
 		pixelData = new float[3][6];
 		render_tri = new RenderableTriangle(root.material, vertices, pixelData);
-		transform_cache = new TransformLookup();
 	}
 	
 	public Face(BodyGroup r)
@@ -61,23 +59,12 @@ public class Face extends Renderable
 	}
 
 	// Renders the face to the display
-	public void render(final float[] refTransform, Camera camera) 
+	public void render(Transformation transform, Camera camera) 
 	{
-		int lookup_x = (int)(refTransform[Structure.ROT_X] * SIN_CONVERT) & 0xFFFF;
-		int lookup_y = (int)(refTransform[Structure.ROT_Y] * SIN_CONVERT) & 0xFFFF;
-		int lookup_z = (int)(refTransform[Structure.ROT_Z] * SIN_CONVERT) & 0xFFFF;
-		transform_cache.sinx = SINE[lookup_x];
-		transform_cache.cosx = COSINE[lookup_x];
-		transform_cache.siny = SINE[lookup_y];
-		transform_cache.cosy = COSINE[lookup_y];
-		transform_cache.sinz = SINE[lookup_z];
-		transform_cache.cosz = COSINE[lookup_z];
-		transform_cache.refTransform = refTransform;
-		
 		// Updates vertices
-		render_tri.projections[0] = vertices[0].updateProjection(transform_cache);
-		render_tri.projections[1] = vertices[1].updateProjection(transform_cache);
-		render_tri.projections[2] = vertices[2].updateProjection(transform_cache);
+		render_tri.projections[0] = vertices[0].transformation.propagatePosition(transform);
+		render_tri.projections[1] = vertices[1].transformation.propagatePosition(transform);
+		render_tri.projections[2] = vertices[2].transformation.propagatePosition(transform);
 		
 		Plane.setNormal(unit_nrm, vertices[0].vertex, vertices[1].vertex, vertices[2].vertex);
 		Line.unit(unit_nrm, normal);

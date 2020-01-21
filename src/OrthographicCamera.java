@@ -43,7 +43,7 @@ public class OrthographicCamera extends Camera
 	}
 	
 	// Updates the transformations of the view plane before rendering
-	public void render(final float[] refTransform, Camera camera) 
+	public void render(Transformation ref, Camera camera) 
 	{
 		viewPlane.update(this);
 	}

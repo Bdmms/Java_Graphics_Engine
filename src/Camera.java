@@ -48,7 +48,7 @@ public abstract class Camera extends Structure
 	}
 	
 	// Nullifies rendering process
-	public void render(TransformLookup transform, final Camera camera) 
+	public void render(Transformation ref, final Camera camera) 
 	{
 		return;
 	}
@@ -58,9 +58,12 @@ public abstract class Camera extends Structure
 	{
 		buffer.refresh();
 		
+		// Default transformation cache
+		transformation.setReference(transform);
+		
 		// Note: transformation is treated as negative
 		for(int i = 0; i < list.length; i++)
-			list[i].render(transform, this);
+			list[i].render(transformation, this);
 	}
 	
 	// Renders the final image

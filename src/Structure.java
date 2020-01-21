@@ -25,16 +25,16 @@ public abstract class Structure extends Renderable
 	
 	public String name;						// Name of structure
 	public float[] transform = {0,0,0,0,0,0,1,1,1}; //Transformation matrix
-	private float[] finalTransform = {0,0,0,0,0,0,1,1,1};	// Calculated rendering transformation matrix
-	private TransformLookup transform_cache;
 	
+	protected Transformation transformation;
 	protected LinkedList<Renderable> children;	// The dynamic list of children stored within the structure
 	protected Renderable[] finalizedList;		// Finalized list used to automate rendering process
 	
 	public Structure(String name)
 	{
+		float[] temp = {0,0,0,0,0,0,1,1,1};
+		transformation = new Transformation(transform, temp);
 		children = new LinkedList<Renderable>();
-		transform_cache = new TransformLookup();
 		this.name = name;
 		numStructures++;
 	}
@@ -60,48 +60,13 @@ public abstract class Structure extends Renderable
 	}
 	
 	// Default Rendering process, can be overwritten
-	public void render(final float[] refTransform, Camera camera) 
+	public void render(Transformation ref, Camera camera) 
 	{
-		calculateTransform(refTransform);
+		transformation.propagateTransformation(ref);
 		
 		if(visible)
 			for(int i = 0; i < finalizedList.length; i++)
-				finalizedList[i].render(finalTransform, camera);
-	}
-	
-	// Calculates all transformations during rendering
-	public void calculateTransform(float[] refTransform)
-	{
-		int lookup_x = (int)(refTransform[Structure.ROT_X] * SIN_CONVERT) & 0xFFFF;
-		int lookup_y = (int)(refTransform[Structure.ROT_Y] * SIN_CONVERT) & 0xFFFF;
-		int lookup_z = (int)(refTransform[Structure.ROT_Z] * SIN_CONVERT) & 0xFFFF;
-		float sinx = SINE[lookup_x];
-		float cosx = COSINE[lookup_x];
-		float siny = SINE[lookup_y];
-		float cosy = COSINE[lookup_y];
-		float sinz = SINE[lookup_z];
-		float cosz = COSINE[lookup_z];
-		
-		// Rotation Along x-axis
-		float rot_y = transform[POS_Y]*cosx - transform[POS_Z]*sinx;
-		float rot_z = transform[POS_Y]*sinx + transform[POS_Z]*cosx;
-
-		// Rotation Along y-axis
-		float rot_x = transform[POS_X]*cosy - rot_z*siny;
-		rot_z = transform[POS_X]*siny + rot_z*cosy;
-		
-		// Rotation Along z-axis
-		finalTransform[POS_X] = (rot_x*cosz - rot_y*sinz)*refTransform[SCA_X] + refTransform[POS_X];
-		finalTransform[POS_Y] = (rot_x*sinz + rot_y*cosz)*refTransform[SCA_Y] + refTransform[POS_Y];
-		finalTransform[POS_Z] = rot_z*refTransform[SCA_Z] + refTransform[POS_Z];
-		
-		// Other transformations
-		finalTransform[SCA_X] = transform[SCA_X] + refTransform[SCA_X];
-		finalTransform[SCA_Y] = transform[SCA_Y] + refTransform[SCA_Y];
-		finalTransform[SCA_Z] = transform[SCA_Z] + refTransform[SCA_Z];
-		finalTransform[ROT_X] = transform[ROT_X] + refTransform[ROT_X];
-		finalTransform[ROT_Y] = transform[ROT_Y] + refTransform[ROT_Y];
-		finalTransform[ROT_Z] = transform[ROT_Z] + refTransform[ROT_Z];
+				finalizedList[i].render(transformation, camera);
 	}
 	
 	// Returns a renderable component of this object
