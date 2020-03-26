@@ -1,6 +1,5 @@
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
-import java.util.Iterator;
 import java.util.LinkedList;
 
 /*
@@ -15,7 +14,6 @@ public class Environment
 {
 	private LinkedList<Structure> structures = new LinkedList<Structure>();	// List of all structures in environment
 	private LinkedList<Camera> cameras = new LinkedList<Camera>();			// List of available cameras
-	private Structure[] finalizedList;				// Finalized list of renderable objects
 	private Camera mainCamera;						// The main camera used for rendering
 	private boolean finalized = false;				// Whether the environment has been finalized
 	
@@ -32,15 +30,8 @@ public class Environment
 	// Finalizes all components so that they can be rendering
 	public void finalizeRender()
 	{
-		Iterator<Structure> iterator = structures.iterator();
-		finalizedList = new Structure[structures.size()];
-		
-		// Finalize Components
-		for(int i = 0; i < finalizedList.length; i++)
-		{
-			finalizedList[i] = iterator.next();
-			finalizedList[i].finalizeRender();
-		}
+		for(Structure s : structures)
+			s.finalizeRender();
 		
 		// Select rendering source
 		mainCamera = cameras.getFirst();
@@ -54,7 +45,7 @@ public class Environment
 			finalizeRender();
 		
 		mainCamera.graphics = g;
-		mainCamera.project(finalizedList);
+		mainCamera.project(structures);
 		
 		return mainCamera.generateRender();
 	}

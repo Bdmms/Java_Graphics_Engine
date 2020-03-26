@@ -8,13 +8,14 @@
 
 public abstract class Renderable
 {
+	protected static RenderPackage binded;
 	protected boolean visible = true; // sets if object will show during rendering
 	
 	// Processes object when rendering process begins
 	public abstract void finalizeRender();
 	
 	// Updates transformation and renders object to camera
-	public abstract void render(RenderPackage packet);
+	public abstract void render();
 	
 	// Toggles visibility of structure
 	public void toggleVisibility() { visible = !visible;}

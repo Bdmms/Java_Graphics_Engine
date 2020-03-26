@@ -21,12 +21,14 @@ public class OrthographicCamera extends Camera
 		viewDepth = vD;
 	}
 	
+	@Override
 	public void render(RenderableTriangle tri)
 	{
 		if(viewPlane.intersectionAlongPlane(tri))
-			tri.render(buffer.getPackage());
+			tri.render();
 	}
 	
+	@Override
 	// Returns intersection point of a line to the camera's view plane (Used in debug)
 	public float[] getVertexPosition(Line pos)
 	{
@@ -35,6 +37,7 @@ public class OrthographicCamera extends Camera
 		return finalPos;
 	}
 	
+	@Override
 	// Finalizes camera resources before rendering process begins
 	public void finalizeRender()
 	{
@@ -42,8 +45,9 @@ public class OrthographicCamera extends Camera
 		super.finalizeRender();
 	}
 	
+	@Override
 	// Updates the transformations of the view plane before rendering
-	public void render(RenderPackage packet) 
+	public void render() 
 	{
 		viewPlane.update(this);
 	}

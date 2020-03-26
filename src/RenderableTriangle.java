@@ -1,6 +1,6 @@
 
 // Struct for passing variables
-public class RenderableTriangle 
+public class RenderableTriangle extends Renderable
 {
 	private static final byte X = 0;
 	private static final byte Y = 1;
@@ -37,7 +37,7 @@ public class RenderableTriangle
 		v3 = pixelData[2];
 	}
 	
-	public void update()
+	public void finalizeRender()
 	{
 		s_vector_tx_comp = (v2[TX] - v1[TX]);
 		s_vector_ty_comp = (v2[TY] - v1[TY]);
@@ -50,7 +50,7 @@ public class RenderableTriangle
 	}
 	
 	// Dynamic Lighting (simplified)
-	public void render(RenderPackage packet)
+	public void render()
 	{
 		// Order the vertices
 		float[] x_min, x_max, y_min, y_max;
@@ -130,14 +130,14 @@ public class RenderableTriangle
 
 		int xmin = x_min[0] < 0 ? 0 : (int) x_min[0];
 		int ymin = y_min[1] < 0 ? 0 : (int) y_min[1];
-		int xmax = x_max[0] >= packet.width ? packet.width - 1 : (int) x_max[0];
-		int ymax = y_max[1] >= packet.height ? packet.height - 1 : (int) y_max[1];
+		int xmax = x_max[0] >= binded.width ? binded.width - 1 : (int) x_max[0];
+		int ymax = y_max[1] >= binded.height ? binded.height - 1 : (int) y_max[1];
 		
 		float s_y = s_origin + (y_min[1] < 0 ? -y_min[1] * dsy : 0);
 		float t_y = t_origin + (y_min[1] < 0 ? -y_min[1] * dty : 0);
 		
 		// Draw triangle
-		for(int y = ymin, pi = ymin * packet.width; y < ymax; y++, pi += packet.width, s_y += dsy, t_y += dty)
+		for(int y = ymin, pi = ymin * binded.width; y < ymax; y++, pi += binded.width, s_y += dsy, t_y += dty)
 		{
 			float s = s_y;
 			float t = t_y;
@@ -152,7 +152,7 @@ public class RenderableTriangle
 					//s = s_origin + dsy * (y - ymin) + dsx * (x - xmin);
 					//t = t_origin + dty * (y - ymin) + dtx * (x - xmin);
 					
-					if(packet.depth[index] > d)
+					if(binded.depth[index] > d)
 					{
 						float lt = v1[LT] + (v2[LT] - v1[LT]) * s + (v3[LT] - v1[LT]) * t;
 						int t_index = ((int)(v1[TX] + s_vector_tx_comp * s + t_vector_tx_comp * t) & material.bin_width.max) | 
@@ -160,11 +160,11 @@ public class RenderableTriangle
 						
 						if((texture[t_index] & 0xFF000000) < 0)
 						{
-							packet.frame[index] = 
+							binded.frame[index] = 
 									((int)(r_image[t_index] * lt) << 16) |
 									((int)(g_image[t_index] * lt) << 8) | 
 									 (int)(b_image[t_index] * lt);
-							packet.depth[index] = d;
+							binded.depth[index] = d;
 						}
 					}
 				}

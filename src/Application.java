@@ -72,6 +72,9 @@ public class Application
 		model = new Model("models\\Spinner\\", "spinner.obj");
 
 		env.addStructure(model);
+		for(int i = 0; i < 10; i++)
+			env.addStructure(new Model("models\\Spinner\\", "spinner.obj"));
+		
 		env.addCamera(camera);
 		env.finalizeRender();
 		model.transform[0] = 100;

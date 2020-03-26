@@ -1,5 +1,6 @@
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 /*
  * File: Camera.java
@@ -43,6 +44,7 @@ public abstract class Camera extends Structure
 		this.size = width * height;
 	}
 	
+	@Override
 	public void finalizeRender()
 	{
 		buffer = new RenderBuffer(width, height);
@@ -50,24 +52,27 @@ public abstract class Camera extends Structure
 		packet.camera = this;
 	}
 	
+	@Override
 	// Nullifies rendering process
-	public void render(Transformation ref, final Camera camera) 
+	public void render() 
 	{
 		return;
 	}
 	
 	// Projects the vertices present in the environment to the camera and renders the structures
-	public void project(Renderable[] list)
+	public void project(List<Structure> list)
 	{
 		buffer.refresh();
 		
-		// Default transformation cache
-		transformation.setReference(transform);
-		packet.transform = transformation;
+		binded = packet; // bind package
 		
 		// Note: transformation is treated as negative
-		for(int i = 0; i < list.length; i++)
-			list[i].render(packet);
+		for(Renderable r : list)
+		{
+			transformation.setReference(transform);
+			binded.transform = transformation;
+			r.render();
+		}
 	}
 	
 	// Renders the final image
@@ -75,9 +80,6 @@ public abstract class Camera extends Structure
 	{
 		return buffer.render();
 	}
-	
-	// Renders the camera (does nothing)
-	public void render(Camera camera) {}
 	
 	public RenderBuffer getBuffer() { return buffer; }
 }

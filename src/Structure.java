@@ -1,4 +1,3 @@
-import java.util.Iterator;
 import java.util.LinkedList;
 
 /*
@@ -28,7 +27,6 @@ public abstract class Structure extends Renderable
 	
 	protected Transformation transformation;
 	protected LinkedList<Renderable> children;	// The dynamic list of children stored within the structure
-	protected Renderable[] finalizedList;		// Finalized list used to automate rendering process
 	
 	public Structure(String name)
 	{
@@ -45,35 +43,27 @@ public abstract class Structure extends Renderable
 	// Returns a specified child from the list
 	public Renderable getChild(int index){return children.get(index);}
 	
+	@Override
 	// Default Finalization, Finalizes the object and its components before rendering
 	public void finalizeRender()
 	{
-		Iterator<Renderable> iterator = children.iterator();
-		finalizedList = new Renderable[children.size()];
-		
-		for(int i = 0; i < finalizedList.length; i++)
-		{
-			finalizedList[i] = iterator.next();
-			finalizedList[i].finalizeRender();
-			iterator.remove();
-		}
+		for(Renderable r : children)
+			r.finalizeRender();
 	}
 	
+	@Override
 	// Default Rendering process, can be overwritten
-	public void render(RenderPackage packet) 
+	public void render() 
 	{
-		transformation.propagateTransformation(packet.transform);
+		transformation.propagateTransformation(binded.transform);
 		
 		if(visible)
-			for(int i = 0; i < finalizedList.length; i++)
+			for(Renderable r : children)
 			{
-				packet.transform = transformation;
-				finalizedList[i].render(packet);
+				binded.transform = transformation;
+				r.render();
 			}
 	}
-	
-	// Returns a renderable component of this object
-	public Renderable getRenderable(int i){return finalizedList[i];}
 	
 	// Returns number of existing structures created
 	public static int getNumStructures() {return numStructures;}
