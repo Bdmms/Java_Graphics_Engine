@@ -24,7 +24,7 @@ public class OrthographicCamera extends Camera
 	public void render(RenderableTriangle tri)
 	{
 		if(viewPlane.intersectionAlongPlane(tri))
-			buffer.fillTrianglePPR_DL(tri.pixelData[0], tri.pixelData[1], tri.pixelData[2], tri.material);
+			tri.render(buffer.getPackage());
 	}
 	
 	// Returns intersection point of a line to the camera's view plane (Used in debug)
@@ -39,11 +39,11 @@ public class OrthographicCamera extends Camera
 	public void finalizeRender()
 	{
 		viewPlane = new Plane(new Vertex(viewDepth, -viewWidth/2, -viewHeight/2), new Vertex(viewDepth, viewWidth/2, -viewHeight/2), new Vertex(viewDepth, -viewWidth/2, viewHeight/2), width, height);
-		buffer = new RenderBuffer(width, height);
+		super.finalizeRender();
 	}
 	
 	// Updates the transformations of the view plane before rendering
-	public void render(Transformation ref, Camera camera) 
+	public void render(RenderPackage packet) 
 	{
 		viewPlane.update(this);
 	}

@@ -16,6 +16,7 @@ public abstract class Camera extends Structure
 	
 	private static int numCameras = 0;	// Total number of created cameras
 	
+	private RenderPackage packet;
 	protected RenderBuffer buffer;	// Buffer of the display
 	protected int width;				// Width of display
 	protected int height;				// Height of display
@@ -45,6 +46,8 @@ public abstract class Camera extends Structure
 	public void finalizeRender()
 	{
 		buffer = new RenderBuffer(width, height);
+		packet = buffer.getPackage();
+		packet.camera = this;
 	}
 	
 	// Nullifies rendering process
@@ -60,10 +63,11 @@ public abstract class Camera extends Structure
 		
 		// Default transformation cache
 		transformation.setReference(transform);
+		packet.transform = transformation;
 		
 		// Note: transformation is treated as negative
 		for(int i = 0; i < list.length; i++)
-			list[i].render(transformation, this);
+			list[i].render(packet);
 	}
 	
 	// Renders the final image

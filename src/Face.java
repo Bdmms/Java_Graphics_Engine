@@ -59,12 +59,12 @@ public class Face extends Renderable
 	}
 
 	// Renders the face to the display
-	public void render(Transformation transform, Camera camera) 
+	public void render(RenderPackage packet) 
 	{
 		// Updates vertices
-		render_tri.projections[0] = vertices[0].transformation.propagatePosition(transform);
-		render_tri.projections[1] = vertices[1].transformation.propagatePosition(transform);
-		render_tri.projections[2] = vertices[2].transformation.propagatePosition(transform);
+		render_tri.projections[0] = vertices[0].transformation.propagatePosition(packet.transform);
+		render_tri.projections[1] = vertices[1].transformation.propagatePosition(packet.transform);
+		render_tri.projections[2] = vertices[2].transformation.propagatePosition(packet.transform);
 		
 		Plane.setNormal(unit_nrm, vertices[0].vertex, vertices[1].vertex, vertices[2].vertex);
 		Line.unit(unit_nrm, normal);
@@ -78,7 +78,7 @@ public class Face extends Renderable
 		
 		// Update material
 		render_tri.material = root.material;
-		camera.render(render_tri);
+		packet.camera.render(render_tri);
 	}
 	
 	// Finalizes the face before rendering, it checks to make sure face is valid
@@ -108,6 +108,8 @@ public class Face extends Renderable
 		pixelData[1][4] = textureData[3];
 		pixelData[2][3] = textureData[4];
 		pixelData[2][4] = textureData[5];
+		
+		render_tri.update();
 	}
 	
 	public Vertex[] getVertecies() {return vertices;}

@@ -60,13 +60,16 @@ public abstract class Structure extends Renderable
 	}
 	
 	// Default Rendering process, can be overwritten
-	public void render(Transformation ref, Camera camera) 
+	public void render(RenderPackage packet) 
 	{
-		transformation.propagateTransformation(ref);
+		transformation.propagateTransformation(packet.transform);
 		
 		if(visible)
 			for(int i = 0; i < finalizedList.length; i++)
-				finalizedList[i].render(transformation, camera);
+			{
+				packet.transform = transformation;
+				finalizedList[i].render(packet);
+			}
 	}
 	
 	// Returns a renderable component of this object

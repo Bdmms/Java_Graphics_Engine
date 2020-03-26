@@ -69,12 +69,7 @@ public class Application
 		
 		// Manually adding model and camera
 		camera = new OrthographicCamera(1.5f, 1.0f, 10.0f, internalWidth, internalHeight);
-		//camera = new OrthographicRayCamera((float)Math.PI/2, (float)Math.PI/2, internalWidth, internalHeight);
-		
-		//model = new Model("models\\HyruleCastle\\", "hyrule_castle.obj");
-		model = new Model("models\\The Legend of Zelda - Twilight Princess\\Spinner\\", "spinner.obj");
-		//model = new Model("models\\The Legend of Zelda - Twilight Princess\\King Bulblin Test Area\\", "king bulblin test area.obj");
-		//model = new Model("models\\Lethe T-Posed\\", "Lethe T-Posed.obj");
+		model = new Model("models\\Spinner\\", "spinner.obj");
 
 		env.addStructure(model);
 		env.addCamera(camera);

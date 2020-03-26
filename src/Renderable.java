@@ -14,7 +14,7 @@ public abstract class Renderable
 	public abstract void finalizeRender();
 	
 	// Updates transformation and renders object to camera
-	public abstract void render(Transformation ref, Camera camera);
+	public abstract void render(RenderPackage packet);
 	
 	// Toggles visibility of structure
 	public void toggleVisibility() { visible = !visible;}

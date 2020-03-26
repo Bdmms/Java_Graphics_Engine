@@ -20,6 +20,9 @@ public class Material
 	public enum MtlCommand { NONE, Kd, Ka, Ks, Ke, Ns, Ni, Tr, TYPE, FILE }; // Commands that can be read in MTL file
 	public enum MaterialType { NONE, ILLUM2 };						 // Material types that can be read
 	
+	private short[] r_image;
+	private short[] g_image;
+	private short[] b_image;
 	private int[] image;					// Image data of texture
 	private String file = "...";			// File name
 	
@@ -44,7 +47,11 @@ public class Material
 		bin_width = BinarySize.x1;
 		bin_height = BinarySize.x1;
 		image = new int[width * height];
+		r_image = new short[width * height];
+		g_image = new short[width * height];
+		b_image = new short[width * height];
 		image[0] = 0x0000FF;
+		r_image[0] = 0xFF;
 	}
 	
 	public Material(BufferedReader reader, String folder, String nm) throws IOException
@@ -55,6 +62,9 @@ public class Material
 		readMTLFile(reader, folder);
 	}
 	
+	public short[] getRedChannel(){return r_image;}
+	public short[] getGreenChannel(){return g_image;}
+	public short[] getBlueChannel(){return b_image;}
 	public int[] getTexture(){return image;}
 	public int getWidth() {return width;}
 	public int getHeight() {return height;}
@@ -63,15 +73,24 @@ public class Material
 	private void readImage(String file)
 	{
 		try {
-			BufferedImage b_image = ImageIO.read(new File(file));
-			image = new int[ b_image.getWidth() *  b_image.getHeight()];
+			BufferedImage src_image = ImageIO.read(new File(file));
+			image = new int[src_image.getWidth() *  src_image.getHeight()];
+			r_image = new short[src_image.getWidth() *  src_image.getHeight()];
+			g_image = new short[src_image.getWidth() *  src_image.getHeight()];
+			b_image = new short[src_image.getWidth() *  src_image.getHeight()];
 			
-			for(int x = 0; x <  b_image.getWidth(); x++)
-				for(int y = 0; y <  b_image.getHeight(); y++)
-					image[x + y *  b_image.getWidth()] =  b_image.getRGB(x, y);
+			for(int x = 0; x <  src_image.getWidth(); x++)
+				for(int y = 0; y <  src_image.getHeight(); y++)
+				{
+					int index = x + y *  src_image.getWidth();
+					image[index] =  src_image.getRGB(x, y);
+					r_image[index] = (short) ((0xFF0000 & src_image.getRGB(x, y)) >> 16);
+					g_image[index] = (short) ((0xFF00 & src_image.getRGB(x, y)) >> 8);
+					b_image[index] = (short) (0xFF & src_image.getRGB(x, y));
+				}
 			
-			width =  b_image.getWidth();
-			height =  b_image.getHeight();
+			width =  src_image.getWidth();
+			height =  src_image.getHeight();
 			bin_width = BinarySize.match(width);
 			bin_height = BinarySize.match(height);
 		} catch (IOException e) { Application.throwError("ERROR - FAILED TO LOAD TEXTURE: " + file, this);}
